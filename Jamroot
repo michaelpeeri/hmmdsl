@@ -1,0 +1,91 @@
+#-------------------------------------------------------------------------------------
+#  Copyright 2014 Michael Peeri
+#
+#  This file is part of hmmdsl.
+#  hmmdsl is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  hmmdsl is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
+#-------------------------------------------------------------------------------------
+
+
+use-project boost 
+			: /home/michael/src/boost_1_56_0 ;
+
+# Python configuration
+using python : 3.4 : /home/michael/src/Python-3.4.1/python
+      : /home/michael/src/Python-3.4.1/Include ;
+
+
+project
+	: requirements 
+	<include>/home/michael/src/Python-3.4.1/Include
+#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include
+#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include/x86_64-unknown-linux-gnu
+#	<include>/home/michael/src/gcc-4.4.2/host-x86_64-unknown-linux-gnu/gcc/include
+#	<include>/home/michael/src/gcc-4.4.2/libstdc++-v3/libsupc++
+	<threading>single 
+	<cxxflags>-Wno-deprecated
+	<cxxflags>-ggdb
+	;
+
+exe prototest
+    : prototest.cpp
+    ;
+
+exe test
+    : test.cpp model.cpp common.cpp
+	: <variant>release:<define>NO_TESTS
+    ;
+
+exe test_fasta
+    : test_fasta.cpp model.cpp common.cpp read_fasta.cpp
+	: <variant>release:<define>NO_TESTS
+	: <define>MainProgram
+    ;
+
+
+exe test_logspace :
+	test_logspace.cpp
+	random_device.cpp
+	: <variant>release:<define>NO_TESTS
+	: <define>MainProgram
+	;
+
+
+exe test_trigamma :
+	test_asa121.cpp
+	asa121.cpp
+	: <variant>release:<define>NO_TESTS
+	: <define>MainProgram
+	;
+
+
+# Make the definition of the python-extension rule available
+import python ;
+
+# Declare a Python extension called hmmdsl_py
+python-extension hmmdsl_py :
+		python_extension.cpp
+		model.cpp
+		read_fasta.cpp
+		test_fasta.cpp
+		read_matrix.cpp
+		common.cpp
+		asa121.cpp
+		viterbi.cpp
+		: <variant>release:<define>NO_TESTS
+		: <library>/boost/python//boost_python 
+		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/random_device.o
+		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/libboost_random.so.1.56.0
+		: <library>/home/michael/src/Python-3.4.1/libpython3.4m.a
+		;
+
