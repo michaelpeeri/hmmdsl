@@ -8,4 +8,4 @@ The C++ implementation uses the _generic programming_  paradigm, and relies heav
 
 Maturity: Basic functionality is working, but code is still being developed and tested, so don't use for any important purpose.
 
-For contact information, go to: https://www.tau.ac.il/~mich1/index.html
+For contact information, go to: http://www.tau.ac.il/~mich1/index.html
