@@ -37,7 +37,13 @@ const seq_t& get_seq(seq_cont_t::const_reference elem)
 
 size_t get_len(seq_cont_t::const_reference elem)
 {
-	return elem.get<2>().size();
+    return elem.get<2>().size();
+}
+
+
+size_t get_len(const seq_t& free_sequence)
+{
+    return free_sequence.length();
 }
 
 

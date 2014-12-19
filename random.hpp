@@ -46,8 +46,17 @@ public:
 protected:
 	void _seed()
 	{
-		boost::random_device seed_gen;
-		_rng.seed(seed_gen);
+            // Bootstrap main RNG using OS entropy pool (uses /dev/urandom by default, which seems more than good enough for seeding)
+            //
+            // See Rule 3 on:
+            // David Jones, "Good Practice in (Pseudo) Random Number Generation for Bioinformatics Applications"
+            // http://www0.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
+            // (Accessed 2014-11-19)
+            //
+            // For applications that strongly rely on random numbers (e.g. MC), see also Click et al., PMID PMC2992609, http://dx.doi.org/10.1002/jcc.21638 
+            //
+            boost::random_device seed_gen;
+            _rng.seed(seed_gen);
 	}
 
 	// Primary RNG

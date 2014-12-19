@@ -239,14 +239,14 @@ namespace v2
 
 
 namespace tag {
-  struct viterbi_decoding {};
+    struct viterbi_decoding : public algorithm {};
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 namespace tag {
-  struct delta_psi {};
+    struct delta_psi : public algorithm {};
 }
 
 namespace detail
@@ -347,7 +347,7 @@ public:
     // std::cout<< ")"<< std::endl;
     // DEBUG ONLY
 
-    const state_t initial_state = begin_state(this->model(comp));
+    const state_t initial_state = begin_state(this->model_c(comp));
     const sequence_t& seq = fasta::get_seq(data_c(comp));
     //std::cout<< "*"<< std::flush;
 
@@ -364,7 +364,7 @@ public:
     }
     // Note: The constraint that the terminal state must be occupied at time L is not enforced here
 
-    const size_t tau_max = this->model(comp).get_max_duration();
+    const size_t tau_max = this->model_c(comp).get_max_duration();
 
     /// Pre-calculate all products of emission probabilities for the range [i-tau, i)
     const size_t max_s = std::min( i , tau_max );
@@ -373,14 +373,14 @@ public:
     // Calculate pi_bl = \lambda \tau -> e(l, seq(i)) * e(l, seq(i-1)) * e(l, seq(i-2)) * ... * e(l, seq(i-tau+1))
     pi_bl[0] = -std::numeric_limits<probability_t>::max(); // invalid value - used just so pi_bl indices correspond with tau values
     if( i<seq.length() )
-      pi_bl[1] = this->model(comp).e( l, seq[ i-1 ] );
+      pi_bl[1] = this->model_c(comp).e( l, seq[ i-1 ] );
     else
       pi_bl[1] = 0;
     for( size_t tau=2; tau<= max_s; ++tau )
     {
       //probability_t bl = 0;
       //if(( i-tau ) < seq.length() )
-	probability_t bl = this->model(comp).e( l, seq[i-tau] );
+	probability_t bl = this->model_c(comp).e( l, seq[i-tau] );
 	//else
 	//	std::cout<< "*()*"<< std::flush;
 
@@ -401,7 +401,7 @@ public:
         for( size_t u=i-tau+1; u<=i; ++u, ++num_factors )
         {
 	  if(u < seq.length() )
-	    p += this->model(comp).e(l, seq[u-1] );
+	    p += this->model_c(comp).e(l, seq[u-1] );
         }
         assert( num_factors == tau );
 
@@ -419,15 +419,15 @@ public:
     {
       assert( i-tau >= 0 );
       
-      alternatives_j_t alternatives_j; alternatives_j.reserve( num_states(this->model(comp)) );
+      alternatives_j_t alternatives_j; alternatives_j.reserve( num_states(this->model_c(comp)) );
       //--- max j loop ---------
-      for( size_t j = 0; j< num_states(this->model(comp)); ++j )
+      for( size_t j = 0; j< num_states(this->model_c(comp)); ++j )
       {
         const result_type vj_prev = this->apply(comp
                                               , v2::tag::delta_psi()
                                               , typename Comp::template algo<v2::tag::delta_psi>::type::arg_type(j, i-tau) );
 
-        const probability_t p = boost::fusion::at_c<0>(vj_prev) + this->model(comp).a(j, l);
+        const probability_t p = boost::fusion::at_c<0>(vj_prev) + this->model_c(comp).a(j, l);
 
         // Store this alternative
         alternatives_j.push_back( result_type( p, j, std::numeric_limits<time_t>::max() ) );
@@ -436,7 +436,7 @@ public:
       // Get the best alternative (for j's) for this tau
       typename alternatives_j_t::const_iterator maxj = std::max_element( alternatives_j.begin(), alternatives_j.end(), compare_first_elements() );
     
-      const probability_t p_tau = this->model(comp).p(l, tau);
+      const probability_t p_tau = this->model_c(comp).p(l, tau);
 
       const probability_t this_pi_bl = pi_bl[tau]; // Use one of the pre-calculated values of pi_bl
 
@@ -463,10 +463,10 @@ public:
   boost::fusion::vector<size_t,size_t> get_extents(Comp& comp)
   {
 #ifdef EXCESSIVE_DEBUG_PRINTING
-    std::cout<< "get_extents "<< fasta::get_len(data_c(comp))+1<< "  "<< num_states( this->model(comp) )<< std::endl;
+    std::cout<< "get_extents "<< fasta::get_len(data_c(comp))+1<< "  "<< num_states( this->model_c(comp) )<< std::endl;
 #endif
     return boost::fusion::vector<state_t,time_t>(
-                                                 num_states( this->model(comp) )
+                                                 num_states( this->model_c(comp) )
                                                , fasta::get_len(data_c(comp))+1
                                                 );
   }
@@ -544,19 +544,19 @@ public:
     }
     // Note: The constraint that the terminal state must be occupied at time L is not enforced here
 
-    alternatives_t alternatives; alternatives.reserve(num_states(this->model(comp)));
+    alternatives_t alternatives; alternatives.reserve(num_states(this->model_c(comp)));
 
-    for( size_t k = 0; k< num_states(this->model(comp)); ++k )
+    for( size_t k = 0; k< num_states(this->model_c(comp)); ++k )
     {
       const result_type vk_prev = this->apply(comp, v2::tag::delta_psi(), typename Comp::template algo<v2::tag::delta_psi>::type::arg_type(k, i-1) );
-      const probability_t p = boost::fusion::at_c<0>(vk_prev) + this->model(comp).a(k, l);
+      const probability_t p = boost::fusion::at_c<0>(vk_prev) + this->model_c(comp).a(k, l);
       alternatives.push_back( result_type( p, k ) );
     }
 
     typename alternatives_t::const_iterator maxk = std::max_element( alternatives.begin(), alternatives.end(), compare_first_elements() );
 
     if( i < length(seq) )
-      return result_type( boost::fusion::at_c<0>(*maxk) + this->model(comp).e( l, seq[i] ),
+      return result_type( boost::fusion::at_c<0>(*maxk) + this->model_c(comp).e( l, seq[i] ),
                           boost::fusion::at_c<1>(*maxk) );
     else
       return *maxk;
@@ -568,8 +568,8 @@ public:
   {
     //std::cout<< "get_extents "<< length(data(comp))+1<< "  "<< num_states( this->model(comp) )<< std::endl;
     return boost::fusion::vector<size_t,size_t>(
-                                                  num_states( this->model(comp) )
-                                                , fasta::get_len(data(comp))+1
+                                                  num_states( this->model_c(comp) )
+                                                , fasta::get_len(data_c(comp))+1
                                                 );
   }
 
@@ -783,7 +783,7 @@ std::ostream& operator<< (std::ostream& stream, const decoding_t& decoding);
 //////////////////////////////////////////////////////////////////////////////////////////
 
 namespace tag {
-  struct multiseq_viterbi {};
+    struct multiseq_viterbi : public algorithm {};
 }
 
 typedef size_t seq_id_t;
@@ -1083,7 +1083,7 @@ public:
 
     // Initialization
     //time_t t_next = length(seq);
-    state_t psi_next = end_state( this->model(comp) );
+    state_t psi_next = end_state( this->model_c(comp) );
 
     adaptor_t adapt;
 
@@ -1096,7 +1096,7 @@ public:
       //std::cout<< "("<< delta<< ", "<< psi<< ", "<< tau<< ")"<< std::endl;
       assert( tau <= t );
 
-      const std::string state_name = this->model(comp).GetStateName(psi_next);
+      const std::string state_name = this->model_c(comp).GetStateName(psi_next);
       decoding._s2[t-tau] = char(state_name[0]);
 
       psi_next = psi;
@@ -1112,7 +1112,7 @@ public:
     decoding._id1 = fasta::get_acc(seq);
 
     decoding._logp = boost::fusion::at_c<0>( adapt(apply(comp, v2::tag::delta_psi(), typename Comp::template algo<v2::tag::delta_psi>::type::arg_type(
-																		      end_state( this->model(comp) )
+																		      end_state( this->model_c(comp) )
 																		      ,fasta::get_len(seq)+1) )) );
 
     return decoding;
@@ -1155,4 +1155,5 @@ void debug_print( const ViterbiAlgorithm<Algo>& obj )
 {
   obj.debug_print();
 }
+
 

@@ -27,6 +27,7 @@ namespace sequential_processing
   namespace detail
   {
     struct info { typedef boost::mpl::int_<1> max_level; };
+    struct info_for_1 { typedef boost::mpl::int_<0> max_level; };
   } // namespace detail
 
   struct sequential_processing_level {};
@@ -35,6 +36,10 @@ namespace sequential_processing
   struct single_sequence_scope : public sequential_processing_level  {  typedef boost::mpl::int_<0> value; typedef detail::info info; typedef empty_scope prev; };
   struct multi_sequence_scope  : public sequential_processing_level  {  typedef boost::mpl::int_<1> value; typedef detail::info info; typedef single_sequence_scope prev; };
   struct everything            : public sequential_processing_level  {  typedef boost::mpl::int_<2> value; typedef detail::info info; typedef multi_sequence_scope prev; };
+
+
+  struct sole_sequence_scope : public sequential_processing_level  {  typedef boost::mpl::int_<0> value; typedef detail::info_for_1 info; typedef empty_scope prev; };
+
 
 template <class Level>
 struct get_previous_level
@@ -49,6 +54,5 @@ struct get_previous_level<empty_scope>
 };
 
 } //namespace sequential_processing
-
 
 } // namespace v2

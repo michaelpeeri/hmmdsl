@@ -18,7 +18,7 @@
 
 
 use-project boost 
-			: /home/michael/src/boost_1_56_0 ;
+			: /home/michael/src/boost_1_57_0 ;
 
 # Python configuration
 using python : 3.4 : /home/michael/src/Python-3.4.1/python
@@ -35,6 +35,7 @@ project
 	<threading>single 
 	<cxxflags>-Wno-deprecated
 	<cxxflags>-ggdb
+	<cxxflags>-std=c++11
 	;
 
 exe prototest
@@ -82,10 +83,11 @@ python-extension hmmdsl_py :
 		common.cpp
 		asa121.cpp
 		viterbi.cpp
+                test_v2.cpp
 		: <variant>release:<define>NO_TESTS
 		: <library>/boost/python//boost_python 
-		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/random_device.o
-		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/libboost_random.so.1.56.0
+		  <library>/home/michael/src/boost_1_57_0/bin.v2/libs/random/build/clang-linux-3.5/debug/threading-multi/random_device.o
+		  <library>/home/michael/src/boost_1_57_0/bin.v2/libs/random/build/clang-linux-3.5/debug/threading-multi/libboost_random.so.1.57.0
 		: <library>/home/michael/src/Python-3.4.1/libpython3.4m.a
 		;
 

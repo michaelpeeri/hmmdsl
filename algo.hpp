@@ -17,16 +17,27 @@
 //-------------------------------------------------------------------------------------
 #pragma once
 #include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/is_base_of.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/mpl/int.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <boost/mpl/assert.hpp>
 #include "v2.hpp"
 #include "sequential_processing.hpp"
 
 
 namespace v2
 {
+
+namespace tag
+{
+struct algorithm {};
+} // namespace tag
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename ValueType, typename Args, typename Model>
@@ -40,11 +51,26 @@ public:
   typedef Model model_type;
 
 protected:
-  template <typename Comp>
-  const Model& model(Comp& comp) const
-  {
-    return comp.get_model();
-  }
+    /*
+     * Provide const access to the model
+     * (for write-access, derive from affects_model)
+     */
+    template <typename Comp>
+    const Model& model(Comp& comp) const
+    {
+        return comp.get_model();
+    }
+
+protected:
+    /*
+     * Provide const access to the model
+     * (for write-access, derive from affects_model)
+     */
+    template <typename Comp>
+    const Model& model_c(Comp& comp) const
+    {
+        return comp.get_model();
+    }
 };
 
 
@@ -217,16 +243,18 @@ struct direct_dependencies_of
 */
 
 
-  /*
-   * Metafunction to select the suitable implementation for each algorithm.
-   * Specialize over different attributes of the Model (possible using
-   * enable_if) to provide the best implementation available.
-   */
+ /*
+  * Metafunction to select the suitable implementation for each algorithm.
+  * Specialize over different attributes of the Model (possible using
+  * enable_if) to provide the best implementation available.
+  */
 template <typename Tag, typename Model, typename Enable=void>
 struct implementations
 {
-  struct missing_impl {};
-  typedef missing_impl impl_type; // Default impl; TODO: find a way to remove this!
+//    BOOST_MPL_ASSERT((boost::is_base_of<v2::tag::algorithm, Tag>));  // TODO - This check is not effective here. Can this be tested in a different way?
+
+    struct missing_impl {};
+    typedef missing_impl impl_type; // Default impl; TODO: find a way to remove this!
 };
 
 

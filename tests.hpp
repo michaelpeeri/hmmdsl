@@ -297,5 +297,254 @@ test_model_valid(const typename Algo::model_type& model)
 	test_emissions_valid_pdf<Algo>(model);
 }
 	
+
+/*
+ * Test 28 (Rabiner p. 263)
+ * The probabilities of being in any state (as calculated by the forward and backward algorithms) must sum to 1
+ * Test for: BaumWelchAlgorithm::gamma()
+ */
+
+template<typename Algo>
+typename boost::enable_if<typename Algo::baumwelch_algo_type::gamma_in_logspace,void>::type
+test_28(typename Algo::baumwelch_algo_type& bw, const typename Algo::model_type& model, const typename Algo::sequence_type& seq)
+{
+    using namespace boost::accumulators;
+    //std::cout<< "test (28)"<< std::endl;
+    
+    const typename Algo::probability_type epsilon = 1e-10;
+    
+    accumulator_set< typename Algo::probability_type, stats< tag::min, tag::max, tag::mean > > acc;
+    bw.calc_all();
+    debug_print(bw);
+    
+    const size_t len = length(seq)+2;
+    for( size_t i=0; i< len; ++i )
+    {
+        typename Algo::probability_type sigmak_gamma = -std::numeric_limits<typename Algo::probability_type>::max();
+        
+        for( size_t k=0; k< num_states(model); ++k )
+        {
+            //if( model.IsReservedState(k) ) continue;
+            
+            const typename Algo::probability_type gamma_ti = bw.gamma(k, i);
+            if( gamma_ti > 1e-10 )
+            {			std::cout<< "test_28: gamma out of range for state="<< k<< ", position="<< i<< ", sum="<< exp(gamma_ti)<< std::endl;		}
+            
+            //std::cout<< "gamma(k="<< k<< ", i="<< i<< ") = "<< gamma_ti<< std::endl;
+            
+            sigmak_gamma = logspace_sum( gamma_ti, sigmak_gamma );
+        }
+	if( (sigmak_gamma > 1e-10 ) || (sigmak_gamma < -0.01) )
+	{
+            std::cout<< "test_28: sum out of range for position "<< i<< ", sum="<< exp(sigmak_gamma)<< std::endl;
+            for( size_t k=0; k< num_states(model); ++k )
+            {
+                if( model.IsReservedState(k) ) continue;
+                const typename Algo::probability_type gamma_ti = bw.gamma(k, i);
+                std::cout<< gamma_ti<< " ";
+            }
+            std::cout<< std::endl;
+	}
+        
+	//std::cout<< "i="<< i<< ", sigma_gamma="<< sigmak_gamma<< std::endl;
+	// Update statistics
+        acc(sigmak_gamma);
+    }
+    // All results are in logspace;
+    const typename Algo::probability_type min_err = min(acc);
+    const typename Algo::probability_type max_err = max(acc);
+    
+    debug_print(bw);
+    
+    assert( fabs(min_err) < epsilon );
+    assert( fabs(max_err) < epsilon );
+    //std::cout<< min(acc)<< " <= Error <= "<< max(acc)<< "\t(average = "<< mean(acc)<< ")"<< std::endl;
+}
+
+template<typename Algo>
+typename boost::disable_if<typename Algo::baumwelch_algo_type::gamma_in_logspace,void>::type
+test_28(typename Algo::baumwelch_algo_type& bw, const typename Algo::model_type& model, const typename Algo::sequence_type& seq)
+{
+    using namespace boost::accumulators;
+    //std::cout<< "test (28)"<< std::endl;
+    
+    const typename Algo::probability_type epsilon = 1e-10;
+    
+    accumulator_set< typename Algo::probability_type, stats< tag::min, tag::max, tag::mean > > acc;
+    bw.calc_all();
+    debug_print(bw);
+    
+    const size_t len = length(seq)+2;
+    for( size_t i=0; i< len; ++i )
+    {
+        typename Algo::probability_type sigmak_gamma = -std::numeric_limits<typename Algo::probability_type>::max();
+        
+        for( size_t k=0; k< num_states(model); ++k )
+        {
+            //if( model.IsReservedState(k) ) continue;
+            
+            const typename Algo::probability_type gamma_ti = bw.gamma(k, i);
+            if( gamma_ti > 1e-10 )
+            {			std::cout<< "test_28: gamma out of range for state="<< k<< ", position="<< i<< ", sum="<< exp(gamma_ti)<< std::endl;		}
+            
+            //std::cout<< "gamma(k="<< k<< ", i="<< i<< ") = "<< gamma_ti<< std::endl;
+            
+            sigmak_gamma += gamma_ti;
+        }
+	if( (sigmak_gamma > 1e-10 ) || (sigmak_gamma < -0.01) )
+	{
+            std::cout<< "test_28: sum out of range for position "<< i<< ", sum="<< exp(sigmak_gamma)<< std::endl;
+            for( size_t k=0; k< num_states(model); ++k )
+            {
+                if( model.IsReservedState(k) ) continue;
+                const typename Algo::probability_type gamma_ti = bw.gamma(k, i);
+                std::cout<< gamma_ti<< " ";
+            }
+            std::cout<< std::endl;
+	}
+        
+	//std::cout<< "i="<< i<< ", sigma_gamma="<< sigmak_gamma<< std::endl;
+	// Update statistics
+        acc(sigmak_gamma);
+    }
+    // All results are in logspace;
+    const typename Algo::probability_type min_err = min(acc);
+    const typename Algo::probability_type max_err = max(acc);
+    
+    debug_print(bw);
+    
+    assert( fabs(min_err) < epsilon );
+    assert( fabs(max_err) < epsilon );
+    //std::cout<< min(acc)<< " <= Error <= "<< max(acc)<< "\t(average = "<< mean(acc)<< ")"<< std::endl;
+}
 	
-} //  namespace tests
+
+template<typename Algo> //, typename BW>
+void test_38(typename Algo::baumwelch_algo_type& bw, const typename Algo::model_type& model, const typename Algo::sequence_type& seq)
+//void test_38(BW& bw, const typename Algo::model_type& model, const typename Algo::sequence_type& seq)
+{
+    using namespace boost::accumulators;
+    //std::cout<< "test (38)"<< std::endl;
+    return;// TODO - Restore this test using the new Sigma_il_xi()
+    
+    const typename Algo::probability_type epsilon = 1e-10;
+    
+    accumulator_set< typename Algo::probability_type, stats< tag::min, tag::max, tag::mean > > acc;
+    
+    for( size_t i=0; i< length(seq)+1; ++i )
+    {
+        for( size_t k=0; k< num_states(model); ++k )
+	{
+            const typename Algo::probability_type gammaki = bw.gamma( k, i );
+            /*  // TODO - Sigmal_xi with the original signature is no longer available
+            const typename Algo::probability_type sigmalxi = bw.Sigmal_xi( k, i );
+            const typename Algo::probability_type delta = exp(gammaki) - sigmalxi;
+            if( fabs(delta) > 0.001 )
+            {			std::cout<< "test_38: delta>0.001: state="<< k<< "\ti="<< i<< ":\tgammaki="<< exp(gammaki)<< "\tsigmal_xi:"<< sigmalxi<< std::endl;		}
+            
+            // Update statistics
+            acc( delta );
+            */
+	}
+	
+    }
+#ifndef NO_TESTS
+    // All results are in logspace;
+  const typename Algo::probability_type min_delta = min(acc);
+  assert( fabs(min_delta) < epsilon );
+  const typename Algo::probability_type max_delta = max(acc);
+  assert( fabs(max_delta) < epsilon );
+#endif
+  //std::cout<< min(acc)<< " <= Error <= "<< max(acc)<< "\t(average = "<< mean(acc)<< ")"<< std::endl;
+}
+
+
+template<typename Algo, typename BW>
+void test_43b(BW& bw, const typename Algo::model_type& model)
+{
+    using namespace boost::accumulators;
+    //std::cout<< "test (43b)"<< std::endl;
+    
+    const typename Algo::probability_type epsilon = 1e-12;
+    bool valid = true;
+    
+    accumulator_set< typename Algo::probability_type, stats< tag::min, tag::max, tag::mean > > acc;
+    
+    for( size_t k=0; k< num_states(model); ++k )
+    {
+        typename Algo::probability_type sigma = 0.0;
+        if( k == model.GetTerminalState()) continue;
+	
+        for( size_t l=0; l< num_states(model); ++l )
+        {
+            const typename Algo::probability_type p = exp(bw.nexta(k, l));
+            assert( (p >= 0.0) && (p <= 1.000000001) );
+            sigma += p;
+        }
+        if( ( sigma > 1.000000001 ) || ( sigma < 0.9 ) )
+        {
+            std::cout<< "test_43b: Error: invalid sigma_l_nexta(k,l) for state "<< k<< " (="<< sigma<< ")"<< std::endl;	  
+            for( size_t l=0; l< num_states(model); ++l )
+            {			  std::cout<< exp(bw.nexta(k, l))<< " ";		  }
+            std::cout<< std::endl;
+            valid = false;
+        }
+        
+        // Update statistics
+        acc( 1.0 - sigma );
+    }
+    // All results are in logspace;
+    const typename Algo::probability_type min_err = min(acc);
+    const typename Algo::probability_type max_err = max(acc);
+    assert( fabs(min_err) < epsilon );
+    assert( fabs(max_err) < epsilon );
+    assert( valid );
+    //std::cout<< min(acc)<< " <= Error <= "<< max(acc)<< "\t(average = "<< mean(acc)<< ")"<< std::endl;
+}
+
+template<typename Algo>
+void test_40c(typename Algo::baumwelch_algo_type& bw, const typename Algo::model_type& model )
+{
+    using namespace boost::accumulators;
+    //std::cout<< "test (40c)"<< std::endl;
+    
+    const typename Algo::probability_type epsilon = 1e-10;
+    
+    accumulator_set< typename Algo::probability_type, stats< tag::min, tag::max, tag::mean > > acc;
+    
+    for( size_t k=0; k< num_states(model); ++k )
+    {
+        const typename Algo::probability_type sigmai_gamma = bw.Sigmai_gamma(k);
+        typename Algo::probability_type sigmas_gamma = 0.0;
+	
+        for( size_t s=0; s< num_symbols(model); ++s )
+        {
+            //const typename Algo::symbol_type sym = model.get_symbol(s);
+            const typename Algo::probability_type sigmai_gamma_obs_s = bw.Sigmai_gamma_observe_s(k, s);
+            assert( ( sigmai_gamma_obs_s == 0.0 ) || (!model.is_silent(k) ) );
+            sigmas_gamma += sigmai_gamma_obs_s;
+        }
+        if( model.is_silent(k) ) continue;
+	
+        const typename Algo::probability_type delta = sigmai_gamma - sigmas_gamma;
+        if( fabs(delta) > epsilon )
+        {
+            std::cout<< "test_40c: delta for symbol "<< k<< " exceeds limit (sigmai_gamma="<< sigmai_gamma<< ", sigmas_gamma="<< sigmas_gamma<< ")"<< std::endl;
+        }
+	
+        // Update statistics
+        acc( delta );
+    }
+    
+    // All results are in logspace;
+#ifndef NO_TESTS
+    const typename Algo::probability_type min_err = min(acc);
+    assert( fabs(min_err) < epsilon );
+    const typename Algo::probability_type max_err = max(acc);
+    assert( fabs(max_err) < epsilon );
+#endif
+    //std::cout<< min(acc)<< " <= Error <= "<< max(acc)<< "\t(average = "<< mean(acc)<< ")"<< std::endl;
+}
+
+} // namespace tests
+

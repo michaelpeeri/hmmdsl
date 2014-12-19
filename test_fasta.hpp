@@ -27,38 +27,38 @@
 
 // Definitions for the HMM algorithm
 typedef	HiddenMarkovAlgorithm<
-	std::string,
-	double_logscale,
-	MatrixModel,
-	ViterbiAlgorithm,
-	forward_algo::ForwardAlgorithm,
-	forward_algo::ForwardAlgorithmHMM,
-	forward_algo::ForwardAlgorithm,
-	forward_algo::ForwardAlgorithmHMM,
-	backward_algo::BackwardAlgorithm,
-	backward_algo::BackwardAlgorithmHMM,
-	backward_algo::BackwardAlgorithm,
-	backward_algo::BackwardAlgorithmHMM,
-	baumwelch_algo::BaumWelchAlgorithm>
+    std::string,
+    double_logscale,
+    MatrixModel,
+    ViterbiAlgorithm,
+    forward_algo::ForwardAlgorithm,
+    forward_algo::ForwardAlgorithmHMM,
+    forward_algo::ForwardAlgorithm,
+    forward_algo::ForwardAlgorithmHMM,
+    backward_algo::BackwardAlgorithm,
+    backward_algo::BackwardAlgorithmHMM,
+    backward_algo::BackwardAlgorithm,
+    backward_algo::BackwardAlgorithmHMM,
+    baumwelch_algo::BaumWelchAlgorithm>
 algo_hmm_t;
 
 // Definitions for the HMM algorithm
 typedef	HiddenMarkovAlgorithm<
-	std::string,
-	double_logscale,
-	HSMMMatrixModel,
-	ViterbiAlgorithm,
-	forward_algo::ForwardAlgorithm,
-	forward_algo::ForwardAlgorithmHSMMEnd,
-	forward_algo::ForwardAlgorithm,
-	forward_algo::ForwardAlgorithmHSMMBegin,
-	backward_algo::BackwardAlgorithm,
-	backward_algo::BackwardAlgorithmHSMMEnd,
-	backward_algo::BackwardAlgorithm,
-	backward_algo::BackwardAlgorithmHSMMBegin,
-	baumwelch_algo::HSMMBaumWelchAlgorithm,
-	true,
-	100>
+    std::string,
+    double_logscale,
+    HSMMMatrixModel,
+    ViterbiAlgorithm,
+    forward_algo::ForwardAlgorithm,
+    forward_algo::ForwardAlgorithmHSMMEnd,
+    forward_algo::ForwardAlgorithm,
+    forward_algo::ForwardAlgorithmHSMMBegin,
+    backward_algo::BackwardAlgorithm,
+    backward_algo::BackwardAlgorithmHSMMEnd,
+    backward_algo::BackwardAlgorithm,
+    backward_algo::BackwardAlgorithmHSMMBegin,
+    baumwelch_algo::HSMMBaumWelchAlgorithm,
+    false, // Use emissions class?
+    100>   // D (maximum state duration)
 algo_hsmm_t;
 
 // Choose which algorithm to use:

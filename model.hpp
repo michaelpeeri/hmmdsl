@@ -180,9 +180,9 @@ namespace detail
 
 		// Required for: CopyConstructible
 		EmissionsClassesIterator( const EmissionsClassesIterator& other )
-			: _pos(other._pos)
-			, _classes(other._classes)
-			{}
+                : _classes(other._classes)
+                , _pos(other._pos)
+                {}
 		
 		// Required for: Assignable
 		EmissionsClassesIterator& operator=( const EmissionsClassesIterator& other )
@@ -680,12 +680,12 @@ public:
   typedef typename base_type::Symbol Symbol;
   typedef typename base_type::Probability Probability;
   typedef boost::mpl::bool_<true> is_explicit_duration_model;
-  const size_t _max_duration;
+  enum { max_duration = Algo::max_duration };
 
-  HSMMMatrixModel() : _max_duration( Algo::max_duration ) {};
+    HSMMMatrixModel() {}
 
 public:
-  size_t get_max_duration() const { return _max_duration; }
+  size_t get_max_duration() const { return max_duration; }
 
 protected:
 	boost::multi_array<Probability, 2> _duration_params;

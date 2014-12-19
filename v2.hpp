@@ -17,6 +17,9 @@
 //-------------------------------------------------------------------------------------
 #pragma once
 #include <string>
+#include <iostream>
+#include "algo.hpp"
+#include "computation.hpp"
 
 namespace v2
 {

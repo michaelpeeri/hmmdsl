@@ -66,7 +66,7 @@ template<
   , template <typename A> class BackwardBeginImpl
   , template <typename A> class BaumWelch
   , bool UseEmissionsClasses=true
-  , size_t D=8
+  , size_t D=30
 >
 struct HiddenMarkovAlgorithm
 {
@@ -270,3 +270,9 @@ boost::array<size_t,2> get_standard_container(const Seq& seq)
 	return container;
 }
 
+
+template< typename P>
+void assert_range_probability_logspace(P p) { assert( p <= 0.0 ); }
+
+template< typename P>
+void assert_range_probability_realspace(P p) { assert( p <= 1.0 ); assert ( p >= 0.0 ); }

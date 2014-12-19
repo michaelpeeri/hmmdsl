@@ -42,3 +42,4 @@ std::string stringify<std::string>( const std::string& a, size_t from, size_t to
 
 
 bool not_suspected_negative_subscript(size_t k) { return k < (std::numeric_limits<size_t>::max() - 100); }
+

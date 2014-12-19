@@ -242,6 +242,7 @@ const std::string& get_acc(seq_cont_t::const_reference elem);
 const std::string& get_desc(seq_cont_t::const_reference elem);
 const seq_t& get_seq(seq_cont_t::const_reference elem);
 size_t get_len(seq_cont_t::const_reference elem);
+size_t get_len(const seq_t& free_sequence);
 
 
 size_t count_fasta(const std::string& path);
