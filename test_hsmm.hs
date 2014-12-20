@@ -57,8 +57,8 @@ q_gamma d eta mu = discretize d eta mu
                            (gamma_cdf ((fromIntegral _d)-0.5) eta mu)
 _D = 100
 
-hsmm_algo :: [Char] -> [Char] -> Matrix Double -> Matrix Double -> Matrix Double -> ((Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), Double, IO (), (String -> IO ()))
-hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begin, gamma_ti, pseq, debug_print, save)
+hsmm_algo :: [Char] -> [Char] -> Matrix Double -> Matrix Double -> Matrix Double -> ((Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), Double, IO (), (String -> IO ()))
+hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begin, gamma_ti, xi, pseq, debug_print, save)
     where
 
     init = 1
@@ -128,6 +128,19 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
                    ]
 
     -- ===============================================================
+    --  xi [HSMM]
+    --  ref: Rabiner eq. (80)
+    -- ===============================================================
+    xi :: Int -> Int -> Double
+    xi i j = sum [
+             (f' ! (t, i) ) *
+             (a ! (i, j) ) *
+             (bb' ! (t, j) )
+             | t <- [2..(_T+1)]
+             ]
+
+
+    -- ===============================================================
     --  P(O|model)
     -- ===============================================================
     pseq :: Double
@@ -152,27 +165,18 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
         putStrLn((show bb'))
         putStrLn("gamma:")
         putStrLn((show g'))
-        --putStrLn((show (intersect [(t+1-2)..(t+d-2)] [2..(_T+1)] ) ) )
-
-        --putStrLn((show [( t_to_seq (intersect [(t+1)..(t+dd)] [2..(_T+1)] )) | dd <- [1..20] ] ))
-
-        --putStrLn(show _T)
-        --putStrLn(show [ [1..(min _D (_T+2-tt+1))] | tt <- [1..(_N+2)]  ] )
-
-        --putStrLn("------");
-        --putStrLn(show [e!(3, (sym (seq!!s))) |  s <- (t_to_seq (intersect [(t+1)..(t+d)] [2..(_T+1)] ) )])
-        --putStrLn(show (product [e!(i, (sym (seq!!s))) |  s <- (t_to_seq (intersect [(t+1)..(t+d)] [2..(_T+1)] ) )]))
-
-        --putStrLn(show [[1..(min _D (_T-tt+1))] | tt <- [1..8] ])
+        putStrLn("xi:")
+        putStrLn((show xi'))
 
     save :: String -> IO ()
     save path = do
         handle <- openFile path WriteMode
-        write_matrix handle f' "forward"
+        write_matrix handle f'  "forward"
         write_matrix handle fb' "forward_begin"
-        write_matrix handle b' "backward"
+        write_matrix handle b'  "backward"
         write_matrix handle bb' "backward_begin"
-        write_matrix handle g' "gamma"
+        write_matrix handle g'  "gamma"
+        write_matrix handle xi' "xi"
         hClose handle
 
     -- ===============================================================
@@ -197,6 +201,7 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
     b'  = fromList (_T+2) _N [backward       t i| t <- [1..(_T+2)], i <- [1.._N]]
     bb' = fromList (_T+2) _N [backward_begin t i| t <- [1..(_T+2)], i <- [1.._N]]
     g'  = fromList (_T+2) _N [gamma_ti t i| t <- [1..(_T+2)], i <- [1.._N]]
+    xi' = fromList _N _N [xi i j| i <- [ 1.._N], j <- [1.._N]]
 
 
 read_string :: Handle -> String -> IO String
@@ -205,8 +210,8 @@ read_string handle expectedHeading = do
     value <- hGetLine handle
     if( heading == expectedHeading ) then return value else error "Unexpected content!"
 
-read_matrix :: Handle -> String -> IO (Matrix Double)
-read_matrix handle expectedHeading = do
+read_matrix :: Handle -> String -> (Double->Double) -> IO (Matrix Double)
+read_matrix handle expectedHeading conv = do
     -- Read the heading line (e.g. [somematrix:15 20]
     headingLine <- hGetLine handle
     let heading = (headingLine =~ "[[]([a-z]+)[:]([0-9]+) ([0-9]+)[]]" :: [[String]])!!0
@@ -219,7 +224,7 @@ read_matrix handle expectedHeading = do
     lines <- (sequence (replicate _nrows (hGetLine handle)))
 
     -- Parse the lines
-    let parseVal = \x -> read (x!!0)::Double  -- Convert all values to Double
+    let parseVal = \x -> conv (read (x!!0)::Double)  -- Convert all values to Double
     let parseLine = \line -> map parseVal (line =~ "[-]?[0-9.]+([eE][+-]?[0-9]+)?"  :: [[String]])
     let rows = map parseLine lines
 
@@ -235,9 +240,9 @@ read_data_file path expectedMatrices = do
     handle <- openFile path ReadMode
     alphabet <- read_string handle "[alphabet]"
     seq <- read_string handle "[sequence]"
-    a' <- read_matrix handle "a"
-    e' <- read_matrix handle "e"
-    d' <- read_matrix handle "d"
+    a' <- read_matrix handle "a" exp
+    e' <- read_matrix handle "e" exp
+    d' <- read_matrix handle "d" (\x -> x)
     hClose handle
     return (alphabet, seq, [a', e', d'])
 
@@ -245,7 +250,7 @@ write_matrix :: Handle -> Matrix Double -> String -> IO ()
 write_matrix handle mtx heading = do
     hPutStrLn handle ( "[" ++ heading ++ ":" ++ (show (nrows mtx)) ++ " " ++ (show (ncols mtx)) ++  "]"  )
 
-    let writeRow = \row -> concat (intersperse " " (map show row))
+    let writeRow = \row -> concat (intersperse " " (map show (map log row)))
     let x = map writeRow (toLists mtx)
     mapM (hPutStrLn handle) x
     return ()
@@ -258,7 +263,11 @@ main = do
 
     (alphabet, seq, [_a1, _b1, _d1]) <- read_data_file dataFile ["a", "e", "d"]
 
-    let (f, fb, b, bb, g, pseq, debug_print, save) = hsmm_algo alphabet seq _a1 _b1 _d1
+    putStrLn(show _a1)
+    putStrLn(show _b1)
+    putStrLn(show _d1)
+
+    let (f, fb, b, bb, g, xi, pseq, debug_print, save) = hsmm_algo alphabet seq _a1 _b1 _d1
 
     putStrLn ("P(model|O): " ++ (show pseq))
 

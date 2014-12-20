@@ -16,6 +16,7 @@
 #  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------------
 from math import exp, sqrt
+import re
 import hmmdsl_py
 import pickle
 
@@ -169,3 +170,53 @@ def WriteDOT( model, filename ):
 
     f.write('}')
 
+
+def WriteHaskellTextFormat( model, sequence, filename ):
+    def write_matrix(io, func, range1, range2 ):
+        for x in range1:
+            io.write( " ".join( map( str, [ func(x,y) for y in range2 ] ) ) )
+            io.write("\n")
+
+
+    with open( filename, 'w') as f:
+        alphabet = model.GetAlphabet()
+        f.write("[alphabet]\n")
+        f.write(alphabet)
+        f.write("\n")
+        f.write("[sequence]\n")
+        f.write(sequence)
+        f.write("\n")
+        N = model.num_states()
+        f.write("[a:{0} {1}]\n".format( N, N ))
+        write_matrix( f, lambda x, y: model.a(x,y), range(0,N), range(0,N) )
+        
+        f.write("[e:{0} {1}]\n".format( N, len(alphabet)))
+        write_matrix( f, lambda x, y: model.e(x,alphabet[y]), range(0,N), range(0,len(alphabet)) )
+
+        f.write("[d:{0} {1}]\n".format( N, 2 ) )
+        d1 = map( lambda x: model.GetMu(x), range(0,N) )
+        d2 = map( lambda x: model.GetEta(x), range(0,N) )
+        d = tuple(zip(d1,d2))
+        write_matrix( f, lambda x, y: d[x][y], range(0,N), range(0,2) )
+
+
+_hs_text_heading = re.compile("[[](\w+)[:](\d+) (\d+)[]]")
+def ReadHaskellTextFormat( filename ):
+    out = {}
+    with open( filename, 'r') as f:
+        while( f.readable() ):
+            heading_text = f.readline()
+            m = _hs_text_heading.match(heading_text)
+            if( m == None ): break
+
+            identifier = m.groups()[0]
+            rows = int(m.groups()[1])
+            cols = int(m.groups()[2])
+            mat = []
+            for i in range(rows):
+                values_text = f.readline()
+                values = list(map(float, values_text.split(" ")))
+                assert(len(values)==cols)
+                mat.append(values)
+            out[identifier] = mat
+    return out

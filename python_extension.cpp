@@ -84,6 +84,7 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 		.def("split_state", &algo_t::model_type::split_state)
 		.def("GetStateLearningMode", &algo_t::model_type::GetStateLearningMode)
 		.def("SetStateLearningMode", &algo_t::model_type::SetStateLearningMode)
+		.def("GetAlphabet", &algo_t::model_type::GetAlphabet)
 		;
 
 	class_<algo_hmm_t::model_type>("HMMModel")
@@ -109,6 +110,7 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 		.def("emissions_entropy", &algo_hmm_t::model_type::emissions_entropy)
 		.def("GetStateLearningMode", &algo_hmm_t::model_type::GetStateLearningMode)
 		.def("SetStateLearningMode", &algo_hmm_t::model_type::SetStateLearningMode)
+		.def("GetAlphabet", &algo_t::model_type::GetAlphabet)
 		;
 
 	class_<em_t>("EM", init<algo_t::model_type&, const std::string>() )

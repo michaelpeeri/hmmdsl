@@ -44,22 +44,25 @@ struct IModelBuilder
 /* Interface for initializing model at run-time */
 {
 public:
-	//typedef typename Algo::model_type::state_id_type StateId;
-	typedef size_t StateId;
-	typedef typename Algo::symbol_type Symbol;
-	typedef typename Algo::probability_type Probability;
-	
-	virtual void AddState(const StateId& state, const std::string& name) = 0;
-	virtual const std::string GetStateName(const StateId& state) const = 0;
-	virtual void SetTransition(const StateId& from, const StateId& to, Probability transition) = 0;
-	virtual void AddAlphabetSymbol(  const Symbol& sym ) = 0;
-	virtual void SetEmissionProbability( const StateId& state, const Symbol& sym, Probability emit_prob ) = 0;
-	/*
-	  virtual void SetStartState(const StateId& state) = 0;
-	  virtual void SetEndState(const StateId& state) = 0;
-	*/
+    //typedef typename Algo::model_type::state_id_type StateId;
+    typedef size_t StateId;
+    typedef typename Algo::symbol_type Symbol;
+    typedef typename Algo::probability_type Probability;
+    
+    virtual void AddState(const StateId& state, const std::string& name) = 0;
+    virtual const std::string GetStateName(const StateId& state) const = 0;
+    virtual void SetTransition(const StateId& from, const StateId& to, Probability transition) = 0;
+    virtual void AddAlphabetSymbol(  const Symbol& sym ) = 0;
+    virtual void SetEmissionProbability( const StateId& state, const Symbol& sym, Probability emit_prob ) = 0;
 
-	virtual void resize() = 0;	
+    virtual typename Algo::sequence_type GetAlphabet() const = 0;
+    
+    /*
+      virtual void SetStartState(const StateId& state) = 0;
+      virtual void SetEndState(const StateId& state) = 0;
+    */
+    
+    virtual void resize() = 0;	
 };
 
 namespace detail
@@ -626,42 +629,60 @@ public:
   }
 
 public:
-	void SetEta(const StateId& state, double eta)
-	{
-		assert( isvalidstateid( state ) );
-	}
+    void SetEta(const StateId& state, double eta)
+    {
+        assert( isvalidstateid( state ) );
+    }
+    
+public:
+    void SetMu(const StateId& state, double mu)
+    {
+        assert( isvalidstateid( state ) );
+    }
+    
+public:
+    double GetEta(const StateId& state) const
+    {
+        assert( isvalidstateid( state ) );
+        // The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
+        return _e[state][state];
+    }
+    
+public:
+    double GetMu(const StateId& state) const
+    {
+        assert( isvalidstateid( state ) );
+        // The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
+        return 1.0;
+    }
+    
+public:
+    self_type& operator=(const self_type& other)
+    {
+        clear();
+        // TODO - impl. this
+        assert(false);
+        return *this;
+    }
+    
 
 public:
-	void SetMu(const StateId& state, double mu)
-	{
-		assert( isvalidstateid( state ) );
-	}
+    typename Algo::sequence_type GetAlphabet() const
+    {
+        typename Algo::sequence_type alphabet( _symbols.size(), ' ');
 
-public:
-	double GetEta(const StateId& state) const
-	{
-		assert( isvalidstateid( state ) );
-		// The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
-		return _e[state][state];
-	}
+        typename symbols_map_t::right_map::const_iterator it, it_end;
+        it = _symbols.right.begin();
+        it_end = _symbols.right.end();
+        size_t id = 0;
+        for( ; it != it_end; ++it, ++id )
+        {
+            std::cout<< id<< " "<< it->first << " "<< it->second<< std::endl;
+            alphabet[id] = it->second;
+        }
 
-public:
-	double GetMu(const StateId& state) const
-	{
-		assert( isvalidstateid( state ) );
-		// The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
-		return 1.0;
-	}
-
-public:
-	self_type& operator=(const self_type& other)
-	{
-		clear();
-		// TODO - impl. this
-		assert(false);
-		return *this;
-	}
-	
+        return alphabet;
+    }
 	
 };	
 
