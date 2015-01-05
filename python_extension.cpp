@@ -120,6 +120,12 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 		.def("reestimate_scale", &em_t::reestimate_scale)
 		.def("reestimate_shape", &em_t::reestimate_shape)
 		.def("debug_print", &em_t::debug_print)
+		.def("forward", &em_t::peek_forward)
+		.def("forward_begin", &em_t::peek_forward_begin)
+		.def("backward", &em_t::peek_backward)
+		.def("backward_begin", &em_t::peek_backward_begin)
+		.def("gamma", &em_t::peek_gamma)
+		.def("sigma_t_xi", &em_t::peek_sigma_t_xi)
 		;
 
 	class_<em_hmm_t>("HMMEM", init<algo_hmm_t::model_type&, const std::string>() )
@@ -171,11 +177,6 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 	def("relax_emissions_hmm", relax_emissions<algo_hmm_t>);
 	register_exception_translator<MatrixModel<algo_hmm_t>::SymbolNotInAlphabet>(&translator_SymbolNotInAlphabet<algo_hmm_t>);
 	def("align_viterbi_hmm", align_viterbi<algo_hmm_t> );
-
-
-
-
-
 
 }
 

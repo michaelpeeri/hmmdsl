@@ -677,7 +677,6 @@ public:
         size_t id = 0;
         for( ; it != it_end; ++it, ++id )
         {
-            std::cout<< id<< " "<< it->first << " "<< it->second<< std::endl;
             alphabet[id] = it->second;
         }
 

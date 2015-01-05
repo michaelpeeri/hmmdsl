@@ -29,7 +29,7 @@
 -- -------------------------------------------------------------------------------------
 import Data.Matrix (Matrix, fromList, fromLists, nrows, ncols, (!), toLists)
 import Math.Gamma (gamma)
-import Math.Gamma.Incomplete (pHypGeom)
+import Math.Gamma.Incomplete (pHypGeom, lowerGammaHypGeom)
 import Data.List (intersect, intersperse)
 import qualified Data.Map (fromList, findWithDefault)
 import System.Environment (getArgs)
@@ -43,18 +43,18 @@ import Text.Regex.TDFA ((=~))
 q_gamma :: Int -> Double -> Double -> Double
 q_gamma d eta mu = discretize d eta mu
     where
-    gamma_dist::Double->Double->Double->Double
-    gamma_dist _d eta mu = (mu**eta)*(_d**(eta-1.0))*exp(-mu*_d)/gamma(eta)
+    --gamma_dist::Double->Double->Double->Double
+    --gamma_dist _d eta mu = (mu**eta)*(_d**(eta-1.0))*exp(-mu*_d)/gamma(eta)
 
     gamma_cdf::Double->Double->Double->Double
-    gamma_cdf x eta mu = (pHypGeom eta (x/mu)) / gamma(eta)
-
+    gamma_cdf x mu eta = (lowerGammaHypGeom mu (x/eta)) / gamma(mu)
+    
     discretize::Int->Double->Double->Double
     discretize  0 _   _  = error "q_gamma called with d=0!"
-    discretize  1 eta mu = (gamma_cdf 1.5 eta mu) - 
+    discretize  1 eta mu = (gamma_cdf 1.5 eta (1/mu)) - 
                            0.0   -- (gamma_cdf 0 eta mu) == 0
-    discretize _d eta mu = (gamma_cdf ((fromIntegral _d)+0.5) eta mu) - 
-                           (gamma_cdf ((fromIntegral _d)-0.5) eta mu)
+    discretize _d eta mu = (gamma_cdf ((fromIntegral _d)+0.5) eta (1/mu)) - 
+                           (gamma_cdf ((fromIntegral _d)-0.5) eta (1/mu))
 _D = 100
 
 hsmm_algo :: [Char] -> [Char] -> Matrix Double -> Matrix Double -> Matrix Double -> ((Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), (Int -> Int -> Double), Double, IO (), (String -> IO ()))
@@ -150,11 +150,6 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
 
     debug_print :: IO ()
     debug_print = do
-        let t = 5
-        let d = 4
-        let i = 3
-        --putStrLn("p(d_3)")
-        --putStrLn(show [p 3 d | d <- [1..100]])
         putStrLn("forward:")
         putStrLn((show f'))
         putStrLn("forward_begin:")
@@ -167,6 +162,10 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
         putStrLn((show g'))
         putStrLn("xi:")
         putStrLn((show xi'))
+        putStrLn("p(d_3)")
+        putStrLn(show [p 3 d | d <- [1..100]])
+        putStrLn("Sigma p(d_3)")
+        putStrLn(show (sum [p 3 d | d <- [1..100]] ) )
 
     save :: String -> IO ()
     save path = do
@@ -183,7 +182,7 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
     --  calculate p(i,d) -- gamma durations distribution
     -- ===============================================================
     p :: Int -> Int -> Double
-    p i d = q_gamma d (d'!(i,1)) (d'!(i,2))
+    p i d = q_gamma d (d'!(i,2)) (d'!(i,1))
 
     _N = nrows a
     _T = length seq
@@ -263,8 +262,11 @@ main = do
 
     (alphabet, seq, [_a1, _b1, _d1]) <- read_data_file dataFile ["a", "e", "d"]
 
+    putStrLn("-- a:")
     putStrLn(show _a1)
+    putStrLn("-- e:")
     putStrLn(show _b1)
+    putStrLn("-- d:")
     putStrLn(show _d1)
 
     let (f, fb, b, bb, g, xi, pseq, debug_print, save) = hsmm_algo alphabet seq _a1 _b1 _d1
