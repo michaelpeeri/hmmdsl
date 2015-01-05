@@ -57,8 +57,6 @@ public:
                        boost::shared_ptr<const typename Algo::sequence_type> seq )
         : _model(model)
 	, _seq(seq)
-	, _gamma(boost::extents[num_states(*model)][length(*seq)+2])
-	, _xi(boost::extents[num_states(*model)][num_states(*model)][length(*seq)+2] )
 	, _nextA(boost::extents[num_states(*model)][num_states(*model)] )
 	, _nextB(boost::extents[num_states(*model)][num_symbols(*model)] )
     {
@@ -71,12 +69,8 @@ public:
 public:
     P gamma( size_t k, size_t i)
     {
-        P val =  _gamma[k][i];
-        if( val != _empty ) return val;
-	
-        _state_reset = false;
-        _gamma[k][i] = val = _produce_gamma(k, i);
-        return val;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
 
     /*
@@ -86,13 +80,8 @@ public:
 public:
     P Sigmai_gamma( size_t k )
     {
-        P sigmai = 0.0;
-        for( size_t i = 0; i< length(*_seq)+2; ++i )
-        {
-            const typename Algo::probability_type gammaki = gamma( k, i );
-            sigmai += exp(gammaki);
-        }
-        return sigmai;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
 
     /*
@@ -102,24 +91,15 @@ public:
 public:
     P Sigmai_gamma_observe_s( size_t k, size_t s )
     {
-        P sigmai = 0.0;
-        const typename Algo::symbol_type sym = _model->get_symbol(s);
-        for( size_t i = 1; i< length(*_seq)+1; ++i ) // Only iterate over positions where symbols are emitted
-        {
-            if( (*_seq)[i-1] == sym )
-            {
-                const typename Algo::probability_type gammaki = gamma( k, i );
-                sigmai += exp(gammaki);
-            }
-        }
-        return sigmai;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
 
 public:
     void calc_all()
     {
         // TODO Impl. this
-        assert(false);
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
         throw;
     }
 	
@@ -130,22 +110,8 @@ public:
 protected:
     P _produce_gamma( size_t k, size_t i )
     {
-        // gamma for initial/terminal states is 0 (they are never visited on positions 0..N-1)
-        //if( _model->IsReservedState(k) )
-        //	return -std::numeric_limits<typename Algo::probability_type>::max();
-        
-        const typename Algo::probability_type Pseq = _forward->calc();
-        //const typename Algo::forward_algo_type::arg_type args = {k,i};
-        
-        const P gamma =
-            (*_forward)( typename Algo::forward_algo_type::arg_type(k, i) )
-            + (*_backward)( typename Algo::backward_algo_type::arg_type(k, i) )
-            - Pseq;
-        assert( gamma < 1e-10 );
-        if( i == 0 )                 assert( gamma == (k == _model->GetInitialState() ) ? 0.0 : -std::numeric_limits<typename Algo::probability_type>::max() );
-        if( i == length(*_seq) + 1 ) assert( gamma == (k == _model->GetTerminalState()) ? 0.0 : -std::numeric_limits<typename Algo::probability_type>::max() );
-	
-        return gamma;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
 	
 			
@@ -156,12 +122,8 @@ protected:
 public:
     P xi( size_t k, size_t l, size_t i )
     {
-        P val = _xi[k][l][i];
-        if( val != _empty ) return val;
-	
-        _state_reset = false;
-        _xi[k][l][i] = val = _produce_xi(k, l, i);
-        return val;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
 
     /*
@@ -171,13 +133,8 @@ public:
 public:
     P Sigmai_xi( size_t k, size_t l)
     {
-        P sigmai = 0.0;
-        for( size_t i = 0; i< length(*_seq) + 2; ++i )/* TODO - fix sigma ends! */
-        {
-            const P xikli = xi( k, l, i );
-            sigmai += exp(xikli);
-        }
-        return sigmai;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
 	
     /*
@@ -188,7 +145,7 @@ public:
     P Sigmal_xi( size_t k)
     {
         // TODO - impl. this properly (see new HSMM impl.)
-        assert(false);
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
         throw;
     }
 	
@@ -201,21 +158,8 @@ public:
 protected:
     P _produce_xi( size_t k, size_t l, size_t i )
     {
-        // I->l  or k->T transitions do not occuer in positions [0..len)
-        //if( _model->IsReservedState(k) ||
-        //	_model->IsReservedState(l)    )
-        //	return -std::numeric_limits<typename Algo::probability_type>::max(); 
-	
-        P xi_kl =
-            (*_forward)( typename Algo::forward_algo_type::arg_type(k, i) )
-            + _model->a(k, l)
-            + (*_backward)( typename Algo::backward_algo_type::arg_type(l, i+1) )
-            - _forward->calc();
-        
-        if( i < length(*_seq) )
-            xi_kl += _model->e(l, (*_seq)[i+1-1]);
-        	
-        return xi_kl;
+        assert(false);  // TODO: re-implement using v2 (based on HSMMBaumWelch)
+        throw;
     }
     
     /*
@@ -274,20 +218,20 @@ public:
 	struct UnsupportedOperation {};
 
 public:	
-	P nextscale( size_t k )
-	{
-		// TODO - Refactor to make this unnecessary
-		assert(false);
-		throw UnsupportedOperation();
-	}
+    P nextscale( size_t k )
+    {
+        // TODO - Refactor to make this unnecessary
+        assert(false);
+        throw UnsupportedOperation();
+    }
 
 public:
-	P nextshape( size_t k )
-	{
-		// TODO - Refactor to make this unnecessary
-		assert(false);
-		throw UnsupportedOperation();
-	}
+    P nextshape( size_t k )
+    {
+        // TODO - Refactor to make this unnecessary
+        assert(false);
+        throw UnsupportedOperation();
+    }
 	
 
     /*
@@ -297,65 +241,24 @@ public:
 public:
     P Pseq()
     {
-        return _forward->calc();
+        assert(false);
+        throw;
     }
 
 protected:
-	void _reset()
-	{
-		// initialize _gamma
-		{
-			const size_t m_end = _gamma.shape()[0];
-			const size_t n_end = _gamma.shape()[1];
-			
-			for( size_t m=0; m< m_end; ++m )
-				for( size_t n=0; n< n_end; ++n )
-				{	  _gamma[m][n] = _empty;	}
-		}
-		
-		// initialize _xi
-		{
-			const size_t m_end = _xi.shape()[0];
-			const size_t n_end = _xi.shape()[1];
-			const size_t o_end = _xi.shape()[2];
-			
-			for( size_t m=0; m< m_end; ++m )
-				for( size_t n=0; n< n_end; ++n )
-					for( size_t o=0; o< o_end; ++o )
-					{	  _xi[m][n][o] = _empty;	}
-		}
-		
-		
-		{
-			const size_t m_end = _nextA.shape()[0];
-			const size_t n_end = _nextA.shape()[1];
-			
-			for( size_t m=0; m< m_end; ++m )
-				for( size_t n=0; n< n_end; ++n )
-				{	  _nextA[m][n] = _empty;	}
-		}
-
-		{
-			const size_t m_end = _nextB.shape()[0];
-			const size_t n_end = _nextB.shape()[1];
-			
-			for( size_t m=0; m< m_end; ++m )
-				for( size_t n=0; n< n_end; ++n )
-				{	  _nextB[m][n] = _empty;	}
-		}
-
-		_forward->reset();
-		_backward->reset();
-		_state_reset = true;
-	}
+    void _reset()
+    {
+        assert(false);
+        throw;
+    }
 	
 public:
-	void reset()
-	{
-	  //std::cout<< "BW::reset()"<< std::endl;
-		if( _state_reset ) return;
-		_reset();
-	}
+    void reset()
+    {
+        //std::cout<< "BW::reset()"<< std::endl;
+        if( _state_reset ) return;
+        _reset();
+    }
 	
 			
     /*
@@ -365,30 +268,8 @@ public:
 protected:
     P _produce_nexta( size_t k, size_t l)
     {
-        // probabilities from/to reserved states are fixed
-        //if( _model->IsReservedState(k) ||
-        //	_model->IsReservedState(l)   )
-        //	return _model->a(k, l);
-        
-        const P sigmai_xi = Sigmai_xi( k, l );
-        const P sigmai_gamma = Sigmai_gamma( k );
-        assert( sigmai_gamma - sigmai_xi > -1e-10 );
-        
-        if( k==0 )
-        {
-            std::cout<< "Debug: nexta(0, "<< l<< "): sigmai_xi="<< sigmai_xi<< ", sigmai_gamma="<< sigmai_gamma<< std::endl;
-        }
-	
-	
-        if( sigmai_gamma < 1e-200 )
-        {
-            std::cout<< "Warning: sigman_gamma==0: insufficient data to estimate 'a' for state="<< k<< ", t="<< l<< std::endl;
-            return _model->a(k, l);
-        }
-	
-        const P nexta = log(sigmai_xi / sigmai_gamma);
-        assert(nexta < 0.001 );
-        return (nexta < 0.0) ? nexta : 0.0;
+        assert(false);  // Deprecated
+        throw;
     }
     
     /*
@@ -398,20 +279,8 @@ protected:
 protected:
     P _produce_nextb( size_t k, size_t s )
     {
-        const P sigmai_gamma_obs_s = Sigmai_gamma_observe_s( k, s );
-        const P sigmai_gamma = Sigmai_gamma( k );
-        assert( sigmai_gamma - sigmai_gamma_obs_s > -1e-10  );
-        assert( !Algo::use_emissions_classes::value );
-        
-        if( sigmai_gamma < 1e-200 )
-        {
-            std::cout<< "Warning: sigman_gamma==0: insufficient data to estimate 'e' for state="<< k<< ", sym="<< s<< std::endl;
-            return _model->e(k, s);
-        }
-        
-        const P nextb = log(sigmai_gamma_obs_s / sigmai_gamma);
-        assert(nextb < 0.001);
-        return (nextb < 0.0) ? nextb : 0.0;
+        assert(false);
+        throw;
     }
     
 protected:
@@ -421,46 +290,13 @@ protected:
      */
     P _produce_nextb_class( size_t k, size_t s )
     {
-        assert( Algo::use_emissions_classes::value );
-	
-        P sigman_gamma_obs_s = 0.0;
-        P sigman_gamma = 0.0;
-        
-        typename Algo::model_type::emissions_class_members_iterator mem_it, mem_end;
-        boost::tie( mem_it, mem_end ) = _model->GetEmissionsClassMembersRange(k);
-        
-        for( ; mem_it != mem_end; ++mem_it )
-        {
-            const typename Algo::model_type::StateId mem = *mem_it;
-            const P sigmai_gamma_obs_s = Sigmai_gamma_observe_s( mem, s );
-            const P sigmai_gamma = Sigmai_gamma( mem );
-            
-            assert( sigmai_gamma - sigmai_gamma_obs_s > -1e-10 );
-            
-            sigman_gamma_obs_s += sigmai_gamma_obs_s;
-            sigman_gamma += sigmai_gamma;			
-        }
-        //sigman_gamma_obs_s /= double(sigman_count);
-        //sigman_gamma /= double(sigman_count);
-        
-        const P nextb = log(sigman_gamma_obs_s / sigman_gamma);
-        assert( nextb < 0.001 );
-        return (nextb <= 0.0) ? nextb : 0.0;
+        assert(false);
+        throw;
     }
     
 protected:
     const boost::shared_ptr<const typename Algo::model_type> _model;
-    const boost::shared_ptr<typename Algo::forward_algo_type> _forward;
-    const boost::shared_ptr<typename Algo::forward_begin_algo_type> _forward_begin;
-    const boost::shared_ptr<typename Algo::backward_algo_type> _backward;
-    const boost::shared_ptr<typename Algo::backward_begin_algo_type> _backward_begin;
     const boost::shared_ptr<const typename Algo::sequence_type> _seq;
-    
-    typedef boost::multi_array<P,2> gamma_type;
-    gamma_type _gamma;
-    
-    typedef boost::multi_array<P,3> xi_type;
-    xi_type _xi;
     
     typedef boost::multi_array<P,2> nextA_type;
     nextA_type _nextA;
@@ -474,10 +310,6 @@ public:
     void debug_print() const
     {
         std::cout<< "BaumWelchAlgorithm<Algo>"<< std::endl;
-        std::cout<< " gamma: ";
-        ::debug_print(_gamma);
-        std::cout<< " xi: ";
-        ::debug_print_exp(_xi);
     }
     
 public:
@@ -707,6 +539,9 @@ class HSMMBaumWelchAlgorithm
 {
 protected:
     typedef typename Algo::probability_type P;
+    using state_t = typename Algo::model_type::StateId;
+    typedef LogspaceDouble<> logspace_t;
+        
 
 public:
 
@@ -1240,8 +1075,6 @@ protected:
 protected:
     P _produce_nextshape( size_t j )
     {
-        typedef LogspaceDouble<> logspace_t;
-        
         // Calculate the value of the b constant (Levinson eq. (21))
         // Numerator
         P sigma_t = 0.0;
@@ -1380,7 +1213,32 @@ public:
         tests::test_38<Algo>(*this, *_model, *_seq);
 
         return true;
-    }    
+    }
+
+    P peek_forward( state_t j, time_t t )
+    { 
+        return boost::fusion::at_c<0>(_comp_xi._apply(v2::tag::forward(),   typename comp_xi_t::template algo<v2::tag::forward >::type::arg_type(j, t) ) );
+    }
+    P peek_forward_begin( state_t j, time_t t )
+    { 
+        return boost::fusion::at_c<0>(_comp_xi._apply(v2::tag::forward_begin(),   typename comp_xi_t::template algo<v2::tag::forward_begin >::type::arg_type(j, t) ) );
+    }
+    P peek_backward( state_t j, time_t t )
+    { 
+        return boost::fusion::at_c<0>(_comp_xi._apply(v2::tag::backward(),   typename comp_xi_t::template algo<v2::tag::backward >::type::arg_type(j, t) ) );
+    }
+    P peek_backward_begin( state_t j, time_t t )
+    { 
+        return boost::fusion::at_c<0>(_comp_xi._apply(v2::tag::backward_begin(),   typename comp_xi_t::template algo<v2::tag::backward_begin >::type::arg_type(j, t) ) );
+    }
+    P peek_gamma( state_t j, time_t t )
+    { 
+        return boost::fusion::at_c<0>(_comp_xi._apply(v2::tag::gamma(),   typename comp_xi_t::template algo<v2::tag::gamma >::type::arg_type(j, t) ) );
+    }
+    P peek_sigma_t_xi( state_t i, state_t j )
+    { 
+        return Sigmai_xi( i, j );
+    }
 
     
 public:
@@ -1406,6 +1264,7 @@ class MultipleSequenceBW
 protected:
     typedef typename Algo::probability_type P;
     enum {_empty=-1}; // Remove this when all memoized funcs use MemoizedFunc
+    using state_t = typename Algo::model_type::StateId;
 	
 public:
     
@@ -1517,7 +1376,7 @@ public:
             _nextB[k][s] = val = _produce_nextb(k,
                                                 s );
             
-            if( val > -1e-2)
+            if( val > -1e-6)
             {
                 std::cout<< "Warning: About to return nextb==1 ("<< exp(val)<< ") for state="<< k<< ", symbol="<< s<< " (noclasses)"<< std::endl;
             }
@@ -1530,7 +1389,7 @@ public:
             val = _produce_nextb_class(emclass,
                                        s );
             
-            if( val > -1e-2)
+            if( val > -1e-6)
             {
                 std::cout<< "Warning: About to return nextb==1 ("<< exp(val)<< ") for state="<< k<< ", symbol="<< s<< " (classes)"<< std::endl;
             }
@@ -1894,6 +1753,14 @@ public:
     }
 
 public:
+    P peek_forward(        size_t n, state_t i, time_t t ) { return _baumwelch[n]->peek_forward(        i,t); }
+    P peek_forward_begin(  size_t n, state_t i, time_t t ) { return _baumwelch[n]->peek_forward_begin(  i,t); }
+    P peek_backward(       size_t n, state_t i, time_t t ) { return _baumwelch[n]->peek_backward(       i,t); }
+    P peek_backward_begin( size_t n, state_t i, time_t t ) { return _baumwelch[n]->peek_backward_begin( i,t); }
+    P peek_gamma(          size_t n, state_t i, time_t t ) { return _baumwelch[n]->peek_gamma(          i,t); }
+    P peek_sigma_t_xi(     size_t n, state_t i, state_t j) { return _baumwelch[n]->peek_sigma_t_xi(     i,j); }
+
+public:
     
 	
     const boost::shared_ptr<const typename Algo::model_type> _model;
@@ -1918,6 +1785,10 @@ public:
 template<typename Algo, typename Reestimator>
 class EM
 {
+public:
+    using state_t = typename Algo::model_type::StateId;
+    using P = typename Algo::probability_type;
+
 public:
     EM( typename Algo::model_type& model, boost::shared_ptr<Reestimator> est)	
         : _model(&model, null_deleter() )
@@ -1966,7 +1837,7 @@ public:
     }
     
 public:
-    typename Algo::probability_type reestimate_a()
+    P reestimate_a()
     {
         _reset(); // clear our buffers
         
@@ -1996,7 +1867,7 @@ public:
         return _est->Pseq();
     }
     
-    typename Algo::probability_type reestimate_b()
+    P reestimate_b()
     {
         _reset(); // clear our buffers
         
@@ -2017,7 +1888,7 @@ public:
             
             for( size_t sidx=0; sidx< num_symbols(*_model); ++sidx )
             {
-                const typename Algo::probability_type newp = _nextB[k][sidx];
+                const P newp = _nextB[k][sidx];
                 //#ifdef EXCESSIVE_DEBUG_PRINTING
                 if( !isvalidprobability( exp( newp )) )
                 {
@@ -2039,7 +1910,7 @@ public:
     }
     
     // TODO - Find out why enable_if doesn't work in this case
-    typename Algo::probability_type reestimate_scale()
+    P reestimate_scale()
     {
         assert(Algo::model_type::is_explicit_duration_model::value);
         _reset(); // clear our buffers
@@ -2063,7 +1934,7 @@ public:
     }
     
     // TODO - Find out why enable_if doesn't work in this case
-    typename Algo::probability_type reestimate_shape()
+    P reestimate_shape()
     {
         assert(Algo::model_type::is_explicit_duration_model::value);
         _reset(); // clear our buffers
@@ -2149,6 +2020,14 @@ public:
         std::cout<< " Estimator: ";
         _est->debug_print();
     }
+
+public:
+    P peek_forward(        size_t n, state_t i, time_t t  ) { return _est->peek_forward(        n, i, t); }
+    P peek_forward_begin(  size_t n, state_t i, time_t t  ) const { return _est->peek_forward_begin(  n, i, t); }
+    P peek_backward(       size_t n, state_t i, time_t t  ) const { return _est->peek_backward(       n, i, t); }
+    P peek_backward_begin( size_t n, state_t i, time_t t  ) const { return _est->peek_backward_begin( n, i, t); }
+    P peek_gamma(          size_t n, state_t i, time_t t  ) const { return _est->peek_gamma(          n, i, t); }
+    P peek_sigma_t_xi(             size_t n, state_t i, state_t j ) const { return _est->peek_sigma_t_xi( n, i, j); }
     
 protected:
     boost::shared_ptr<typename Algo::model_type> _model;
