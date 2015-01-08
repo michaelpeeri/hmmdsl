@@ -16,22 +16,19 @@
 #  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------------
 
+import os ;
+local BOOST_INCLUDE = [ os.environ BOOST_INCLUDE ] ;
+local BOOST_LINK    = [ os.environ BOOST_LINK ] ;
 
 use-project boost 
-			: /home/michael/src/boost_1_57_0 ;
+			: $(BOOST_INCLUDE) ;
 
 # Python configuration
-using python : 3.4 : /home/michael/src/Python-3.4.1/python
-      : /home/michael/src/Python-3.4.1/Include ;
+using python : 3.4 ; 
 
 
 project
 	: requirements 
-	<include>/home/michael/src/Python-3.4.1/Include
-#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include
-#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include/x86_64-unknown-linux-gnu
-#	<include>/home/michael/src/gcc-4.4.2/host-x86_64-unknown-linux-gnu/gcc/include
-#	<include>/home/michael/src/gcc-4.4.2/libstdc++-v3/libsupc++
 	<threading>single 
 	<cxxflags>-Wno-deprecated
 	<cxxflags>-ggdb
@@ -86,8 +83,8 @@ python-extension hmmdsl_py :
                 test_v2.cpp
 		: <variant>release:<define>NO_TESTS
 		: <library>/boost/python//boost_python 
-		  <library>/home/michael/src/boost_1_57_0/bin.v2/libs/random/build/clang-linux-3.5/debug/threading-multi/random_device.o
-		  <library>/home/michael/src/boost_1_57_0/bin.v2/libs/random/build/clang-linux-3.5/debug/threading-multi/libboost_random.so.1.57.0
-		: <library>/home/michael/src/Python-3.4.1/libpython3.4m.a
+		  <library>$(BOOST_LINK)/../../bin.v2/libs/random/build/clang-linux-3.5/release/threading-multi/random_device.o
+		  <library>$(BOOST_LINK)/libboost_random.so.1.57.0
+		: <library>$(BOOST_LINK)/libpython3.a
 		;
 
