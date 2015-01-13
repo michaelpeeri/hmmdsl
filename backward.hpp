@@ -533,7 +533,8 @@ public:
             return (l==termstate) ? 0.0 : -std::numeric_limits<P>::max();
         
         if( (i == 0) && (l != this->model_c(comp).GetInitialState()) ) return -std::numeric_limits<P>::max();
-        if( l == this->model_c(comp).GetTerminalState() ) return -std::numeric_limits<P>::max();
+        if( (l == this->model_c(comp).GetInitialState()) && (i>0) )    return -std::numeric_limits<P>::max();
+        if( l == this->model_c(comp).GetTerminalState() )              return -std::numeric_limits<P>::max();
 	
         // Rabiner eq. (76)
         P sum = -std::numeric_limits<P>::max();

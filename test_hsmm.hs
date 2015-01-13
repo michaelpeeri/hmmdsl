@@ -73,21 +73,23 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
     --  ref: Rabiner eq. (68)
     -- ===============================================================
     forward :: Int -> Int -> Double
-    forward t 1 = if (t==1) then 1.0 else 0.0
-    forward t 2 = 0.0
-    forward t i = sum [
-            (fb' ! (t-d, i)) *
-            (p i d) *
-            (product [e!(i, (sym (seq!!s))) | s <- (t_to_seq (intersect [(t-d+1)..t] [2..(_T+1)] )) ] )
-            | d <- [1..(min _D (t-1))]
-            ]
+    forward t i | (i==1) = if (t==1) then 1.0 else 0.0
+                | (t==(_T+2) && (i/=2)) = 0.0
+                | otherwise = sum [
+                  (fb' ! (t-d, i)) *
+                  (p i d) *
+                  (product [e!(i, (sym (seq!!s))) | s <- (t_to_seq (intersect [(t-d+1)..t] [2..(_T+1)] )) ] )
+                   | d <- [1..(min _D (t-1))]
+                   ]
 
     -- ===============================================================
     --  forward_begin [HSMM]
     --  ref: Rabiner eq. (71)
     -- ===============================================================
     forward_begin :: Int -> Int -> Double
-    forward_begin t j | (t<(_T+1)) && (j==2) = 0.0
+    forward_begin t j | (t==(_T+1)) && (j/=2) = 0.0
+                      | ((j==2) && (t<(_T+1))) = 0.0
+                      | (t==(_T+2)) = 0.0
                       | otherwise = sum [(f' ! (t, i)) * (a ! (i, j)) | i <- [1.._N]]
 
     
@@ -99,6 +101,7 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
     backward t i | (t==_T+2) && (i/=2) = 0.0
                  | (t==_T+2) && (i==2) = 1.0
                  | (t>1)     && (i==1) = 0.0
+                 | (t==1)    && (i/=1) = 0.0
                  | otherwise = sum [ (a ! (i, j)) * (bb' ! (t, j))    | j <- [1.._N] ]
 
     -- ===============================================================
@@ -121,10 +124,13 @@ hsmm_algo alphabet seq a e d' = (forward, forward_begin, backward, backward_begi
     --  TODO: optimize summing
     -- ===============================================================
     gamma_ti :: Int -> Int -> Double
-    gamma_ti t i = sum [
+    gamma_ti t i | (t==_T+2) && (i/=2) = 0.0
+                 | (t==_T+2) && (i==2) = 1.0
+                 | (t/=_T+2) && (i==2) = 0.0
+                 | otherwise = sum [
                    ((fb' ! (tau, i)) * (bb' ! (tau, i))) - 
                    ((f'  ! (tau, i)) * (b'  ! (tau, i)))
-                   | tau <- [1..t]
+                   | tau <- [1..(t)]
                    ]
 
     -- ===============================================================

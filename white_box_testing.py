@@ -17,7 +17,7 @@
 #-------------------------------------------------------------------------------------
 import sys
 import getopt
-from math import exp
+from math import exp, log, isnan
 from tempfile import NamedTemporaryFile
 from textwrap import wrap
 from functools import reduce
@@ -58,6 +58,8 @@ def main(argv=None):
         #f3 = lambda em: em.reestimate_scale()
         #f4 = lambda em: em.reestimate_shape()
 
+        test_model.debug_print()
+
         # TODO - get matrices from impl.
         def readMatrix( seqid, rows, cols, getval ):
             mat = []
@@ -66,14 +68,17 @@ def main(argv=None):
                 mat.append(row)
             return mat
 
+
+        safelog = lambda x: log(x) if x>1e-50 else float('-inf')
+        
         em.reestimate_b()
         coreMats = {}
         coreMats["forward"] = readMatrix( 0, 10, 9, lambda n,i,t: em.forward(n, t, i) )
         coreMats["forward_begin"] = readMatrix( 0, 10, 9,  lambda n,i,t: em.forward_begin(n, t, i) )
         coreMats["backward"] = readMatrix( 0, 10, 9, lambda n,i,t: em.backward(n, t, i) )
         coreMats["backward_begin"] = readMatrix( 0, 10, 9, lambda n,i,t: em.backward_begin(n, t, i) )
-        coreMats["gamma"] = readMatrix( 0, 10, 9, lambda n,i,t: em.gamma(n, t, i) )
-        coreMats["xi"] = readMatrix( 0, 9, 9,  lambda n,i,j: em.sigma_t_xi(n, j, i) )
+        coreMats["gamma"] = readMatrix( 0, 10, 9, lambda n,i,t: safelog(em.gamma(n, t, i)) )
+        coreMats["xi"] = readMatrix( 0, 9, 9,  lambda n,i,j: safelog(em.sigma_t_xi(n, j, i)) )
 
         print(coreMats["forward"])
 
@@ -84,7 +89,11 @@ def main(argv=None):
         if( ret != 0 ): raise Exception("Got return value {0}!".format(ret))
         
         # Read ref impl. output values
-        hsMats = dotio.ReadHaskellTextFormat("results.dat")
+        #def convertInf(x):
+        #    if( x == float('inf') ):
+        #        return 
+        hsMats = dotio.ReadHaskellTextFormat("results.dat" )
+
         assert("forward" in hsMats)
         assert("forward_begin" in hsMats)
         assert("backward" in hsMats)
@@ -95,24 +104,79 @@ def main(argv=None):
         # Write the comparison report
         report = open("report.html", "w")
         report.write("<html>")
-        def diff(mat1, mat2, combinator_func, title="matrix"):
-            return "<div>{0}</div>".format(title) + "<table>" + "".join(reduce( lambda x,y:x+y, map(
-                    lambda row1, row2: ["<tr>"] +
-                    list(map(lambda x1, x2: "<td>{0:.4}</td>".format(combinator_func(x1, x2)),
-                                                    row1, row2))
-                    + ["</tr>"]
-                    , mat1, mat2 ))) + "</table>\n"
-                
+        def diff(mat1, mat2, combinator_func, title="matrix", colorfunc=lambda x: "rgb(0,0,0)", backcolorfunc=lambda x: "white" ):
+            out = []
+            out.append( "<div>{0}</div>\n".format(title) )
+            out.append("<table>")
+            for row1, row2 in zip(mat1, mat2):
+                out.append("<tr>")
+                for v1, v2 in zip(row1, row2):
+                    val = combinator_func(v1,v2)
+                    color = colorfunc(val)
+                    back = backcolorfunc(val)
+                    out.append("""<td><div style="color: {1}; background-color: {4}" title="{2:.3} // {3:.3}">{0:.5}</div></td>""".format(val[0], color, val[1], val[2], back))
+                out.append("</tr>\n")
+            out.append("</table>\n")
+            return "".join(out)
+            #return "<div>{0}</div>".format(title) + "<table>" + "".join(reduce( lambda x,y:x+y, map(
+            #        lambda row1, row2: ["<tr>"] +
+            #        list(map(lambda x1, x2: "<td>{0:.4}</td>".format(combinator_func(x1, x2)),
+            #                                        row1, row2))
+            #        + ["</tr>"]
+            #        , mat1, mat2 ))) + "</table>\n"
+        
+        
+        def redorgreen(x, red="rgb(225, 35, 42)", green="rgb(100, 230, 120)"):
+            return red if abs(x[0])>1e-4 else green
+
+        def redtowhite(x):
+            err = max(0, min(100, abs(x[0])))
+            #print("{0} -> {1} ->".format(x,err))
+            if( err < 1e-4 ):
+                return "white"
+
+            mag = int(max(0, min(200, 20*log(err+1))))
+            
+            return "rgb({0},{1},{2})".format(255,255,255-mag)
+        
+
+
+        def difference(x,y):
+            # Handle +numeric_limits<double>::max, +inf
+            x = min( x, 1e+300 )
+            y = min( y, 1e+300 )
+
+            # Handle -numeric_limits<double>::max, -inf
+            x = max( x, -1e+300 )
+            y = max( y, -1e+300 )
+            
+            # Handle nan
+            if( isnan(x) ):
+                if( isnan(y) ):
+                    return nan
+                else:
+                    return 1e+300
+            
+            return y-x
+            
 
         # TODO - compare matrices
         for s in ["forward", "forward_begin", "backward", "backward_begin", "gamma", "xi"]:
-            report.write(diff(coreMats[s], hsMats[s], lambda x,y: y-x, title="{0} [delta]".format(s)))
+            report.write(diff(coreMats[s], hsMats[s], lambda x,y: (difference(x,y),x,y), title="{0} [delta]".format(s), colorfunc=redorgreen, backcolorfunc=redtowhite))
 
-        for s in ["forward", "forward_begin", "backward", "backward_begin", "gamma", "xi"]:
-            report.write(diff(coreMats[s], hsMats[s], lambda x,y: x, title="[core] {0}".format(s)))
+        report.write("""<div style="position: relative;">""")
 
+        report.write("""<div style="width: 50%; position: relative; top: 0px; left: 0%; ">""")
         for s in ["forward", "forward_begin", "backward", "backward_begin", "gamma", "xi"]:
-            report.write(diff(coreMats[s], hsMats[s], lambda x,y: y, title="[ref] {0}".format(s)))
+            report.write(diff(coreMats[s], hsMats[s], lambda x,y: (y,x,y), title="[ref] {0}".format(s)))
+        report.write("""</div>""")
+
+        report.write("""<div style="width: 50%; position: absolute; top: 0px; left: 50%; ">""")
+        for s in ["forward", "forward_begin", "backward", "backward_begin", "gamma", "xi"]:
+            report.write(diff(coreMats[s], hsMats[s], lambda x,y: (x,x,y), title="[core] {0}".format(s)))
+        report.write("""</div>""")
+
+        report.write("""</div>""")
 
         #report.write(diff(coreMats["forward"], hsMats["forward"], title="forward"))
         #report.write(diff(coreMats["forward_begin"], hsMats["forward_begin"], title="forward-begin"))
