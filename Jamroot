@@ -1,10 +1,7 @@
 
-import os;
+import os ;
 local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
-
-
 use-project boost : $(BOOST_ROOT) ;
-
 
 
 # Python configuration
@@ -13,7 +10,7 @@ using python : 3.5 ;
 
 project
 	: requirements 
-	<include>/home/michael/src/Python-3.4.1/Include
+#	<include>/home/michael/src/Python-3.4.1/Include
 	<threading>single 
 	<cxxflags>-Wno-deprecated
 	<cxxflags>-ggdb
