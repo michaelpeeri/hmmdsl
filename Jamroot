@@ -1,38 +1,15 @@
 
-#			: /home/michael/src/boost_1_42_0 ;
-
-
-use-project boost 
-			: /home/michael/src/boost_1_56_0 ;
-
-
-#	  : /home/michael/src/Python-3.1.2/python
-#	  : /home/michael/src/Python-3.1.2/Include
-
-
-#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include
-#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include/x86_64-unknown-linux-gnu
-#	<include>/home/michael/src/gcc-4.4.2/host-x86_64-unknown-linux-gnu/gcc/include
-#	<include>/home/michael/src/gcc-4.4.2/libstdc++-v3/libsupc++
-#	<include>/home/michael/src/boost_1_41_0
-#	<include>/home/michael/src/Python-3.1.3
-
-#	<include>/usr/include/c++/4.4.3/
+use-project boost : $(BOOST_ROOT) ;
 
 
 
 # Python configuration
-using python : 3.4 : /home/michael/src/Python-3.4.1/python
-      : /home/michael/src/Python-3.4.1/Include ;
+using python : 3.5 ;
 
 
 project
 	: requirements 
 	<include>/home/michael/src/Python-3.4.1/Include
-#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include
-#	<include>/home/michael/src/gcc-4.4.2/x86_64-unknown-linux-gnu/libstdc++-v3/include/x86_64-unknown-linux-gnu
-#	<include>/home/michael/src/gcc-4.4.2/host-x86_64-unknown-linux-gnu/gcc/include
-#	<include>/home/michael/src/gcc-4.4.2/libstdc++-v3/libsupc++
 	<threading>single 
 	<cxxflags>-Wno-deprecated
 	<cxxflags>-ggdb
