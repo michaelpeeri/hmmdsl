@@ -62,9 +62,9 @@ python-extension hmmdsl_py :
 #		random_device.cpp
 		asa121.cpp
 		: <variant>release:<define>NO_TESTS
-		: <library>/boost/python//boost_python 
-		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/random_device.o
-		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/libboost_random.so.1.56.0
-		: <library>/home/michael/src/Python-3.4.1/libpython3.4m.a
+#		: <library>/boost/python//boost_python 
+#		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/random_device.o
+#		  <library>/home/michael/src/boost_1_56_0/bin.v2/libs/random/build/clang-linux-3.2/debug/threading-multi/libboost_random.so.1.56.0
+#		: <library>/home/michael/src/Python-3.4.1/libpython3.4m.a
 		;
 
