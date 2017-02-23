@@ -50,5 +50,8 @@ RUN apt-get update \
     && ./bootstrap.sh \
     && ./b2 install \
     && cd ../.. \
-    && git clone https://github.com/michaelpeeri/hmmdsl.git --branch v1 /opt/hmmdsl
+    && git clone https://github.com/michaelpeeri/hmmdsl.git --branch v1 /opt/hmmdsl \
+    && cd /opt/hmmdsl/ \
+    && bjam hmmdsl_py toolset=clang variant=debug \
+    && bjam hmmdsl_py toolset=clang variant=release
 CMD ["bash"]
