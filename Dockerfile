@@ -1,3 +1,7 @@
+#----------------------------------------------------
+# Initialize hmmdsl build/runtime environment
+# Build using: docker build -t hmmdsl .
+#----------------------------------------------------
 FROM ubuntu:xenial
 ENV DEBIAN_FRONTEND noninteractive
 ENV BOOST_VERSION 1.63.0
@@ -40,7 +44,7 @@ RUN apt-get update \
             --with-python=/usr/bin/python3.5 \
     && ( \
        ./b2  \
-            --with-python \
+            --with-python --with-random \
               toolset=clang \
               variant=debug \
               install \
@@ -53,5 +57,11 @@ RUN apt-get update \
     && git clone https://github.com/michaelpeeri/hmmdsl.git --branch v1 /opt/hmmdsl \
     && cd /opt/hmmdsl/ \
     && bjam hmmdsl_py toolset=clang variant=debug \
-    && bjam hmmdsl_py toolset=clang variant=release
+    && bjam hmmdsl_py toolset=clang variant=release \
+    && bjam hmmdsl_py toolset=gcc   variant=debug \
+    && bjam hmmdsl_py toolset=gcc   variant=release \
+    && cp bin/clang-linux-3.6.2/release/hmmdsl_py.so /usr/lib/python3/dist-packages/ \
+    && ldconfig \
+    && python3 -c "import hmmdsl_py"
 CMD ["bash"]
+
