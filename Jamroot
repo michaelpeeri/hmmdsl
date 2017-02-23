@@ -16,10 +16,6 @@ project
 	<cxxflags>-ggdb
 	;
 
-exe prototest
-    : prototest.cpp
-    ;
-
 exe test
     : test.cpp model.cpp common.cpp
 	: <variant>release:<define>NO_TESTS
