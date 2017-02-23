@@ -193,6 +193,9 @@ void debug_print_exp( const boost::multi_array<T, 3>& obj )
 template<typename T>
 bool isvalidprobability(const T val) { return ( (val >= 0.0) && (val <= 1.00001) ); } // TODO FIX THIS!!!!
 
+template<typename C>
+std::string stringify( const C& a, size_t from, size_t to );
+
 template<typename C1, typename C2>
 void print_seqs( const C1& a, const C2& b )
 {
@@ -208,9 +211,6 @@ void print_seqs( const C1& a, const C2& b )
     pos += width;
   }
 }
-
-template<typename C>
-std::string stringify( const C& a, size_t from, size_t to );
 
 
 

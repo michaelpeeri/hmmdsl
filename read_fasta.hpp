@@ -190,7 +190,7 @@ public:
 	
 	void on_seq(const Acc& acc, const Desc& desc, const Seq& seq)
 	{
-		push_back( boost::make_tuple(acc,desc,seq) );
+  	  Cont::push_back( boost::make_tuple(acc,desc,seq) );
 
 /*		
 		std::cout<< "***"<< std::endl;

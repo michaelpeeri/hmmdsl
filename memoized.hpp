@@ -38,7 +38,7 @@ public:
 		if( val == _empty )
 		{
 			_state_reset = false;
-			_v(args2) = val = _produce_fli( args );
+			_v(args2) = val = Func::_produce_fli( args );
 			assert( val != _empty);
 		}
 		return val;

@@ -45,9 +45,10 @@ public:
     }
 
     // Value not cached - need to calculate it
-    _v[l][i]   = newext.get<0>();
-    _ptr[l][i] = newext.get<1>();
-    return newext.get<0>();
+    //_v[l][i]   = newext.get<0>();
+    _v[l][i]   = get<0>(newext);
+    _ptr[l][i] = get<1>(newext);
+    return get<0>(newext);
   }
 protected:
 
@@ -64,8 +65,8 @@ protected:
     }
 
     extval_t maxk = getmax( alternatives );
-    return make_tuple( maxk.get<0>() + _model->e(l, (*_seq)[i] ),
-		       maxk.get<1>() );
+    return make_tuple( get<0>(maxk) + _model->e(l, (*_seq)[i] ),
+		       get<1>(maxk) );
   }
 
   static extval_t getmax( const alternatives_t& alts )
@@ -78,13 +79,13 @@ protected:
       return alts[0];
 
     it_best = it = alts.begin(); 
-    P Pbest = it->get<0>();
+    P Pbest = get<0>(*it);
 
     for( ++it; it != alts.end(); ++it )
     {
-      if( it->get<0>() > Pbest )
+      if( get<0>(*it) > Pbest )
       {
-	Pbest = it->get<0>();
+	Pbest = get<0>(*it);
 	it_best = it;
       }
     }
@@ -105,7 +106,7 @@ public:
     }
     extval_t maxk = getmax( alternatives );
     
-    return maxk.get<0>();
+    return get<0>(maxk);
   }
 
 public:
@@ -125,7 +126,7 @@ public:
 
 	// Backtrack from the last state
     int pos = last;
-	size_t state = maxk.get<1>();
+    size_t state = get<1>(maxk);
     while(pos>=0)
     {
       bt.push_back( _model->GetStateName(state) );

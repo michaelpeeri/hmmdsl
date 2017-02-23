@@ -438,13 +438,13 @@ public:
 public:
 	Probability a(const StateId& from, const StateId& to) const
 	{
-		assert( isvalidstateid( from ) ); assert( isvalidstateid( to ) );
+	  assert( Model::isvalidstateid( from ) ); assert( Model::isvalidstateid( to ) );
 		const Probability p = _a[from][to];
 		return p;
 	}
 	Probability e(const StateId& state, const Symbol& sym) const
 	{
-		assert( isvalidstateid( state ) );
+	  assert( Model::isvalidstateid( state ) );
 		typename symbols_map_t::left_map::const_iterator it;
 		it = _symbols.left.find( sym );
 		if( it == _symbols.left.end() )
@@ -461,9 +461,9 @@ public:
 	}
 	Probability e(const StateId& state, const size_t& s) const
 	{
-		assert( isvalidstateid( state ) );
+	  assert( Model::isvalidstateid( state ) );
 		assert( !is_silent(state) );
-		assert( isvalidsymbolid( s ) );
+		assert( Model::isvalidsymbolid( s ) );
 		
 		const Probability p = _e[state][s];
 		return p;
@@ -506,7 +506,7 @@ public:
 
 	const std::string GetStateName(const StateId& idx) const
 	{
-		assert( isvalidstateid( idx ) );
+	  assert( Model::isvalidstateid( idx ) );
 		return _states.at(idx);
 	}
 	
@@ -575,19 +575,19 @@ public:
 public:
 	void SetEta(const StateId& state, double eta)
 	{
-		assert( isvalidstateid( state ) );
+	  assert( Model::isvalidstateid( state ) );
 	}
 
 public:
 	void SetMu(const StateId& state, double mu)
 	{
-		assert( isvalidstateid( state ) );
+	  assert( Model::isvalidstateid( state ) );
 	}
 
 public:
 	double GetEta(const StateId& state) const
 	{
-		assert( isvalidstateid( state ) );
+	  assert( Model::isvalidstateid( state ) );
 		// The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
 		return _e[state][state];
 	}
@@ -595,7 +595,7 @@ public:
 public:
 	double GetMu(const StateId& state) const
 	{
-		assert( isvalidstateid( state ) );
+	  assert( Model::isvalidstateid( state ) );
 		// The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
 		return 1.0;
 	}
@@ -656,7 +656,7 @@ protected:
 public:
 	void SetEta(const StateId& state, double eta)
 	{
-		assert( isvalidstateid( state ) );
+	  assert( self_type::isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		_duration_params[state][_eta] = eta;
 	}
@@ -664,7 +664,7 @@ public:
 public:
 	void SetMu(const StateId& state, double mu)
 	{
-		assert( isvalidstateid( state ) );
+	  assert( self_type::isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		_duration_params[state][_mu] = mu;
 	}
@@ -672,7 +672,7 @@ public:
 public:
 	double GetEta(const StateId& state) const
 	{
-		assert( isvalidstateid( state ) );
+	  assert( self_type::isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		return _duration_params[state][_eta];
 	}
@@ -680,7 +680,7 @@ public:
 public:
 	double GetMu(const StateId& state) const
 	{
-		assert( isvalidstateid( state ) );
+	  assert( self_type::isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		return _duration_params[state][_mu];
 	}
@@ -692,7 +692,7 @@ public:
 		using namespace boost::math;
 		assert(duration <= Algo::max_duration );
 
-		if( IsReservedState(state) ) return (duration==1) ? 0.0 : -std::numeric_limits<Probability>::max();
+		if( base_type::IsReservedState(state) ) return (duration==1) ? 0.0 : -std::numeric_limits<Probability>::max();
 
 		gamma_distribution<Probability> dist(_get_mu(state),
 											 1./_get_eta(state) );
@@ -763,19 +763,19 @@ public:
 		assert(balance>0.0 && balance<1.0);
 		
 		// Add the new state
-		AddState( new_state2, "split" );
+		base_type::AddState( new_state2, "split" );
 		resize();
 
 		// Update transitions
 		for(StateId i=0; i<base_type::num_states(); ++i)
 		{
-			SetTransitionLogspace(new_state2,
+		  base_type::SetTransitionLogspace(new_state2,
 								  i,
-								  a(orig_state, i) );
-			SetTransitionLogspace(orig_state,
+					      base_type::a(orig_state, i) );
+		  base_type::SetTransitionLogspace(orig_state,
 								  i,
 								  (i==new_state2) ? 0.0 : -std::numeric_limits<Probability>::max() );
-			SetTransitionLogspace(i,
+		  base_type::SetTransitionLogspace(i,
 								  new_state2,
 								  (i==orig_state) ? 0.0 : -std::numeric_limits<Probability>::max() );
 
@@ -785,14 +785,14 @@ public:
 		// Copy emissions to the new state
 		for( size_t s=0; s<base_type::num_symbols(); ++s)
 		{
-			SetEmissionProbabilityLogspace( new_state2,
-											base_type::get_symbol(s),
-											e(orig_state, s) );
+		  base_type::SetEmissionProbabilityLogspace( new_state2,
+						  base_type::get_symbol(s),
+						  base_type::e(orig_state, s) );
 		}
 
 		// Update duration params
-		const double orig_eta = GetEta(orig_state);
-		const double orig_mu = GetMu(orig_state);
+		const double orig_eta = self_type::GetEta(orig_state);
+		const double orig_mu = self_type::GetMu(orig_state);
 		const double new_mu1 = orig_mu * balance;
 		const double new_mu2 = orig_mu * (1.0 - balance);
 		
