@@ -50,5 +50,5 @@ RUN apt-get update \
     && ./bootstrap.sh \
     && ./b2 install \
     && cd ../.. \
-    && git clone https://github.com/michaelpeeri/hmmdsl.git /opt/hmmdsl
+    && git clone https://github.com/michaelpeeri/hmmdsl.git --branch v1 /opt/hmmdsl
 CMD ["bash"]
