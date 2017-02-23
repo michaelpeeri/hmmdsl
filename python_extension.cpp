@@ -1,20 +1,3 @@
-//-------------------------------------------------------------------------------------
-//  Copyright 2014 Michael Peeri
-//
-//  This file is part of hmmdsl.
-//  hmmdsl is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  hmmdsl is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
-//-------------------------------------------------------------------------------------
 #include <boost/python.hpp>
 #include "test_fasta.hpp"
 #include "common.hpp"
@@ -82,9 +65,6 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 		.def("SetMu", &algo_t::model_type::SetMu)
 		.def("emissions_entropy", &algo_t::model_type::emissions_entropy)
 		.def("split_state", &algo_t::model_type::split_state)
-		.def("GetStateLearningMode", &algo_t::model_type::GetStateLearningMode)
-		.def("SetStateLearningMode", &algo_t::model_type::SetStateLearningMode)
-		.def("GetAlphabet", &algo_t::model_type::GetAlphabet)
 		;
 
 	class_<algo_hmm_t::model_type>("HMMModel")
@@ -108,9 +88,6 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 		.def("SetFixedEmissionsState", &algo_hmm_t::model_type::SetFixedEmissionsState)
 		.def("MergeEmissionsClass", &algo_hmm_t::model_type::MergeEmissionsClass)
 		.def("emissions_entropy", &algo_hmm_t::model_type::emissions_entropy)
-		.def("GetStateLearningMode", &algo_hmm_t::model_type::GetStateLearningMode)
-		.def("SetStateLearningMode", &algo_hmm_t::model_type::SetStateLearningMode)
-		.def("GetAlphabet", &algo_t::model_type::GetAlphabet)
 		;
 
 	class_<em_t>("EM", init<algo_t::model_type&, const std::string>() )
@@ -120,12 +97,6 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 		.def("reestimate_scale", &em_t::reestimate_scale)
 		.def("reestimate_shape", &em_t::reestimate_shape)
 		.def("debug_print", &em_t::debug_print)
-		.def("forward", &em_t::peek_forward)
-		.def("forward_begin", &em_t::peek_forward_begin)
-		.def("backward", &em_t::peek_backward)
-		.def("backward_begin", &em_t::peek_backward_begin)
-		.def("gamma", &em_t::peek_gamma)
-		.def("sigma_t_xi", &em_t::peek_sigma_t_xi)
 		;
 
 	class_<em_hmm_t>("HMMEM", init<algo_hmm_t::model_type&, const std::string>() )
@@ -165,8 +136,6 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 	def("count_fasta", fasta::count_fasta );
 	def("relax_emissions", relax_emissions<algo_t>);
 	register_exception_translator<MatrixModel<algo_t>::SymbolNotInAlphabet>(&translator_SymbolNotInAlphabet<algo_t>);
-	def("align_viterbi", align_viterbi<algo_t> );
-	def("print_model_statistics", print_model_statistics<algo_t> );
 
 	def("test_model_hmm", test_model<algo_hmm_t> );
 	def("train_model_hmm", train_model<algo_hmm_t> );
@@ -176,7 +145,6 @@ BOOST_PYTHON_MODULE(hmmdsl_py)
 //	def("test_vector", test_vector ); // Test for output to python arrays
 	def("relax_emissions_hmm", relax_emissions<algo_hmm_t>);
 	register_exception_translator<MatrixModel<algo_hmm_t>::SymbolNotInAlphabet>(&translator_SymbolNotInAlphabet<algo_hmm_t>);
-	def("align_viterbi_hmm", align_viterbi<algo_hmm_t> );
 
 }
 

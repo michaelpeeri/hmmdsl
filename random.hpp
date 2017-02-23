@@ -1,20 +1,3 @@
-//-------------------------------------------------------------------------------------
-//  Copyright 2014 Michael Peeri
-//
-//  This file is part of hmmdsl.
-//  hmmdsl is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  hmmdsl is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
-//-------------------------------------------------------------------------------------
 #pragma once
 #include <boost/shared_ptr.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -46,17 +29,8 @@ public:
 protected:
 	void _seed()
 	{
-            // Bootstrap main RNG using OS entropy pool (uses /dev/urandom by default, which seems more than good enough for seeding)
-            //
-            // See Rule 3 on:
-            // David Jones, "Good Practice in (Pseudo) Random Number Generation for Bioinformatics Applications"
-            // http://www0.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
-            // (Accessed 2014-11-19)
-            //
-            // For applications that strongly rely on random numbers (e.g. MC), see also Click et al., PMID PMC2992609, http://dx.doi.org/10.1002/jcc.21638 
-            //
-            boost::random_device seed_gen;
-            _rng.seed(seed_gen);
+		boost::random_device seed_gen;
+		_rng.seed(seed_gen);
 	}
 
 	// Primary RNG

@@ -1,20 +1,3 @@
-//-------------------------------------------------------------------------------------
-//  Copyright 2014 Michael Peeri
-//
-//  This file is part of hmmdsl.
-//  hmmdsl is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  hmmdsl is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
-//-------------------------------------------------------------------------------------
 #pragma once
 #include <iostream>
 #include <limits>
@@ -48,43 +31,37 @@ struct UnaryFunc
 };
 
 template<
-  typename Sequence
-  , typename P
-  , template <typename A> class Model
-  , template <typename A> class Viterbi
-  //  , template <typename A, typename Imp> class Viterbi
-  //  , template <typename A> class ViterbiImpl
-  //  , template <typename A, typename Imp> class ViterbiBegin
-  // , template <typename A> class ViterbiBeginImpl
-  , template <typename A, typename Imp> class Forward
-  , template <typename A> class ForwardImpl
-  , template <typename A, typename Imp> class ForwardBegin
-  , template <typename A> class ForwardBeginImpl
-  , template <typename A, typename Imp> class Backward
-  , template <typename A> class BackwardImpl
-  , template <typename A, typename Imp> class BackwardBegin
-  , template <typename A> class BackwardBeginImpl
-  , template <typename A> class BaumWelch
-  , bool UseEmissionsClasses=true
-  , size_t D=30
+	  typename Sequence
+	, typename P
+	, template <typename A> class Model
+	, template <typename A> class Viterbi
+	, template <typename A, typename Imp> class Forward
+	, template <typename A> class ForwardImpl
+	, template <typename A, typename Imp> class ForwardBegin
+	, template <typename A> class ForwardBeginImpl
+	, template <typename A, typename Imp> class Backward
+	, template <typename A> class BackwardImpl
+	, template <typename A, typename Imp> class BackwardBegin
+	, template <typename A> class BackwardBeginImpl
+	, template <typename A> class BaumWelch
+	, bool UseEmissionsClasses=true
+	, size_t D=8
 >
 struct HiddenMarkovAlgorithm
 {
-  typedef HiddenMarkovAlgorithm<Sequence,P,Model,Viterbi,/*ViterbiImpl,ViterbiBegin,ViterbiBeginImpl,*/Forward,ForwardImpl,ForwardBegin,ForwardBeginImpl,Backward,BackwardImpl,BackwardBegin,BackwardBeginImpl,BaumWelch,UseEmissionsClasses,D> self_type;
-  typedef Sequence sequence_type;
-  typedef P probability_type;
-  typedef Model<self_type> model_type;
-  typedef Viterbi<self_type> viterbi_algo_type;
-  //  typedef Viterbi<self_type, ViterbiImpl<self_type> > viterbi_algo_type;
-  // typedef ViterbiBegin<self_type, ViterbiBeginImpl<self_type> > viterbi_begin_algo_type;
-  typedef Forward<self_type, ForwardImpl<self_type> > forward_algo_type;
-  typedef ForwardBegin<self_type, ForwardBeginImpl<self_type> > forward_begin_algo_type;
-  typedef Backward<self_type, BackwardImpl<self_type> > backward_algo_type;
-  typedef Backward<self_type, BackwardBeginImpl<self_type> > backward_begin_algo_type;
-  typedef BaumWelch<self_type> baumwelch_algo_type;
-  typedef typename Sequence::value_type symbol_type;
-  typedef boost::mpl::bool_<UseEmissionsClasses> use_emissions_classes;
-  enum { max_duration = D };
+	typedef HiddenMarkovAlgorithm<Sequence,P,Model,Viterbi,Forward,ForwardImpl,ForwardBegin,ForwardBeginImpl,Backward,BackwardImpl,BackwardBegin,BackwardBeginImpl,BaumWelch,UseEmissionsClasses,D> self_type;
+	typedef Sequence sequence_type;
+	typedef P probability_type;
+	typedef Model<self_type> model_type;
+	typedef Viterbi<self_type> viterbi_algo_type;
+	typedef Forward<self_type, ForwardImpl<self_type> > forward_algo_type;
+	typedef ForwardBegin<self_type, ForwardBeginImpl<self_type> > forward_begin_algo_type;
+	typedef Backward<self_type, BackwardImpl<self_type> > backward_algo_type;
+	typedef Backward<self_type, BackwardBeginImpl<self_type> > backward_begin_algo_type;
+	typedef BaumWelch<self_type> baumwelch_algo_type;
+	typedef typename Sequence::value_type symbol_type;
+	typedef boost::mpl::bool_<UseEmissionsClasses> use_emissions_classes;
+	enum { max_duration = D };
 };
 
 
@@ -93,10 +70,6 @@ size_t length(const std::vector<T>& vec) { return vec.size(); }
 
 size_t length(const std::string& t);
 
-
-
-template<typename C>
-std::string stringify( const C& a, size_t from, size_t to );
 
 
 template<class T>
@@ -236,6 +209,9 @@ void print_seqs( const C1& a, const C2& b )
   }
 }
 
+template<typename C>
+std::string stringify( const C& a, size_t from, size_t to );
+
 
 
 struct null_deleter
@@ -270,9 +246,3 @@ boost::array<size_t,2> get_standard_container(const Seq& seq)
 	return container;
 }
 
-
-template< typename P>
-void assert_range_probability_logspace(P p) { assert( p <= 0.0 ); }
-
-template< typename P>
-void assert_range_probability_realspace(P p) { assert( p <= 1.0 ); assert ( p >= 0.0 ); }

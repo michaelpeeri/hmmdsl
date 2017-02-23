@@ -1,20 +1,3 @@
-//-------------------------------------------------------------------------------------
-//  Copyright 2014 Michael Peeri
-//
-//  This file is part of hmmdsl.
-//  hmmdsl is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  hmmdsl is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
-//-------------------------------------------------------------------------------------
 #pragma once
 #include <math.h>
 #include <vector>
@@ -25,18 +8,16 @@
 #undef BOOST_DISABLE_ASSERTS
 #include <boost/bimap.hpp>
 #include <boost/math/distributions/gamma.hpp>
-#include <boost/mpl/logical.hpp>
 #include <iostream>
 #include <cassert>
 #include "common.hpp"
 #include "tests.hpp"
-#include "v2.hpp"
 
 template<typename Model>
 typename Model::StateId begin_state(const Model& model) { return 0; }
 
 template<typename Model>
-typename Model::StateId end_state(const Model& model) { return 1; }
+typename Model::StateId end_state(const Model& model) { return 0; }
 
 
 template<typename Algo>
@@ -44,25 +25,23 @@ struct IModelBuilder
 /* Interface for initializing model at run-time */
 {
 public:
-    //typedef typename Algo::model_type::state_id_type StateId;
-    typedef size_t StateId;
-    typedef typename Algo::symbol_type Symbol;
-    typedef typename Algo::probability_type Probability;
-    
-    virtual void AddState(const StateId& state, const std::string& name) = 0;
-    virtual const std::string GetStateName(const StateId& state) const = 0;
-    virtual void SetTransition(const StateId& from, const StateId& to, Probability transition) = 0;
-    virtual void AddAlphabetSymbol(  const Symbol& sym ) = 0;
-    virtual void SetEmissionProbability( const StateId& state, const Symbol& sym, Probability emit_prob ) = 0;
+	//typedef typename Algo::model_type::state_id_type StateId;
+	typedef size_t StateId;
+	typedef typename Algo::symbol_type Symbol;
+	typedef typename Algo::probability_type Probability;
+	
+	virtual void AddState(const StateId& state, const std::string& name) = 0;
+	virtual const std::string GetStateName(const StateId& state) const = 0;
+	virtual void SetTransition(const StateId& from, const StateId& to, Probability transition) = 0;
+	virtual void AddAlphabetSymbol(  const Symbol& sym ) = 0;
+	virtual void SetEmissionProbability( const StateId& state, const Symbol& sym, Probability emit_prob ) = 0;
+	/*
+	  virtual void SetStartState(const StateId& state) = 0;
+	  virtual void SetEndState(const StateId& state) = 0;
+	*/
 
-    virtual typename Algo::sequence_type GetAlphabet() const = 0;
-    
-    /*
-      virtual void SetStartState(const StateId& state) = 0;
-      virtual void SetEndState(const StateId& state) = 0;
-    */
-    
-    virtual void resize() = 0;	
+	virtual void resize() = 0;	
+
 };
 
 namespace detail
@@ -183,9 +162,9 @@ namespace detail
 
 		// Required for: CopyConstructible
 		EmissionsClassesIterator( const EmissionsClassesIterator& other )
-                : _classes(other._classes)
-                , _pos(other._pos)
-                {}
+			: _pos(other._pos)
+			, _classes(other._classes)
+			{}
 		
 		// Required for: Assignable
 		EmissionsClassesIterator& operator=( const EmissionsClassesIterator& other )
@@ -222,11 +201,8 @@ namespace detail
 	
 } // namespace detail	
 
-
-struct HMMMatrixModel {}; // Base type (used for template specialization)
-
 template<typename Algo>
-class MatrixModel : public IModelBuilder<Algo>, public HMMMatrixModel
+class MatrixModel : public IModelBuilder<Algo>
 {  
 public:
 	typedef size_t StateId;
@@ -234,7 +210,7 @@ public:
 	typedef typename Algo::symbol_type Symbol;
 	typedef typename Algo::probability_type Probability;
 	typedef MatrixModel<Algo> self_type;
-  
+
 	struct SymbolNotInAlphabet{}; // exception
 	typedef boost::mpl::bool_<false> is_explicit_duration_model;
 	
@@ -248,9 +224,6 @@ public:
 	{
 		_init_fixed_parts();
 	}
-
-public:
-  virtual ~MatrixModel() {}
 
 private:
 	void _init_fixed_parts()
@@ -357,14 +330,6 @@ protected:
 	{
 		_a.resize( boost::extents[_states.size()][_states.size()] );
 		_e.resize( boost::extents[_states.size()][_symbols.size()] );
-
-		//_state_learning_mode.resize( boost::extents[ _states.size()][ num_state_parameters<self_type>::value ] );
-
-
-		// TODO - remove the following line?
-		_state_learning_mode.resize( boost::extents[ _states.size()][ 3 /* TODO FIX THIS*/ ]);
-
-
 	}
 
 protected:
@@ -429,27 +394,22 @@ public:
 	}
 
 			
-public:
-  typedef enum { DefaultLearning=0, PresetValuesNoLearning=1 } state_learning_mode_t;
-
 protected:
 	
-  typedef typename boost::bimap<Symbol, size_t> symbols_map_t;
-  symbols_map_t _symbols;
-  
-  boost::multi_array<Probability, 2> _a;
-  boost::multi_array<Probability, 2> _e;
-  
-  std::vector<std::string> _states;
-  emission_classes_t _emission_class;
-  detail::ClassesSet<StateId> _emission_class_set_for_iter_impl;
-  
-  
-  boost::multi_array<state_learning_mode_t, 2> _state_learning_mode;
-  
-  bool isvalidsymbolid( size_t val ) const { return (val < _symbols.size()); }
-  bool isvalidstateid( StateId val ) const { return (val < _states.size()); }
-  
+	typedef typename boost::bimap<Symbol, size_t> symbols_map_t;
+	symbols_map_t _symbols;
+
+	boost::multi_array<Probability, 2> _a;
+	boost::multi_array<Probability, 2> _e;
+
+	std::vector<std::string> _states;
+	emission_classes_t _emission_class;
+	detail::ClassesSet<StateId> _emission_class_set_for_iter_impl;
+	
+	
+	bool isvalidsymbolid( size_t val ) const { return (val < _symbols.size()); }
+	bool isvalidstateid( StateId val ) const { return (val < _states.size()); }
+	
 public:
 	void SetDefaultProbabilities()
 	{
@@ -489,9 +449,9 @@ public:
 		it = _symbols.left.find( sym );
 		if( it == _symbols.left.end() )
 		{
-		  assert( it != _symbols.left.end() );
-                  std::cerr<< "Error: symbol '"<< sym<< "' not in alphabet! ("<< __FILE__<< ":"<< __LINE__<< ")"<< std::endl;
-		  throw SymbolNotInAlphabet();
+			assert( it != _symbols.left.end() );
+			std::cout<< "Error: symbol '"<< sym<< "' not in alphabet!"<< std::endl;
+			throw SymbolNotInAlphabet();
 		}
 		
 		assert( isvalidsymbolid( it->second ) );
@@ -613,99 +573,59 @@ public:
 
 
 public:
-  size_t /*state_learning_mode_t*/ GetStateLearningMode(const StateId& state, size_t param_class) const
+	void SetEta(const StateId& state, double eta)
 	{
-	  assert( isvalidstateid( state ) ); assert( param_class < 2 /*num_state_parameters<self_type>::value*/ );
-	  const state_learning_mode_t mode = _state_learning_mode[state][param_class];
-	  return (size_t)mode;
+		assert( isvalidstateid( state ) );
 	}
-public:
-  void SetStateLearningMode( const StateId& state, size_t param_class, size_t /*state_learning_mode_t*/ mode )
-  {
-    std::cout<< state<< ", "<< param_class<< ", "<< mode<< std::endl;
-    assert( isvalidstateid( state ) ); assert( param_class < 2 /*num_state_parameters<self_type>::value*/ );
-    // TODO - validate 'mode' parameterf
-    _state_learning_mode[state][param_class] = (state_learning_mode_t)mode;
-  }
 
 public:
-    void SetEta(const StateId& state, double eta)
-    {
-        assert( isvalidstateid( state ) );
-    }
-    
-public:
-    void SetMu(const StateId& state, double mu)
-    {
-        assert( isvalidstateid( state ) );
-    }
-    
-public:
-    double GetEta(const StateId& state) const
-    {
-        assert( isvalidstateid( state ) );
-        // The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
-        return _e[state][state];
-    }
-    
-public:
-    double GetMu(const StateId& state) const
-    {
-        assert( isvalidstateid( state ) );
-        // The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
-        return 1.0;
-    }
-    
-public:
-    self_type& operator=(const self_type& other)
-    {
-        clear();
-        // TODO - impl. this
-        assert(false);
-        return *this;
-    }
-    
+	void SetMu(const StateId& state, double mu)
+	{
+		assert( isvalidstateid( state ) );
+	}
 
 public:
-    typename Algo::sequence_type GetAlphabet() const
-    {
-        typename Algo::sequence_type alphabet( _symbols.size(), ' ');
+	double GetEta(const StateId& state) const
+	{
+		assert( isvalidstateid( state ) );
+		// The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
+		return _e[state][state];
+	}
 
-        typename symbols_map_t::right_map::const_iterator it, it_end;
-        it = _symbols.right.begin();
-        it_end = _symbols.right.end();
-        size_t id = 0;
-        for( ; it != it_end; ++it, ++id )
-        {
-            alphabet[id] = it->second;
-        }
+public:
+	double GetMu(const StateId& state) const
+	{
+		assert( isvalidstateid( state ) );
+		// The exponential distribution with param theta is equivalent to gamma(k=1.0, theta=1/theta)
+		return 1.0;
+	}
 
-        return alphabet;
-    }
+public:
+	self_type& operator=(const self_type& other)
+	{
+		clear();
+		// TODO - impl. this
+		assert(false);
+		return *this;
+	}
+	
 	
 };	
 
-struct HSMMMatrixModelBase {};  // Base type (used for template specialization)
 
 template<typename Algo>
-class HSMMMatrixModel : public MatrixModel<Algo>, public HSMMMatrixModelBase
+class HSMMMatrixModel : public MatrixModel<Algo>
 {
 public:
 
-  //typedef typename Algo::model_type::state_id_type StateId;
-  typedef MatrixModel<Algo> base_type;
-  typedef HSMMMatrixModel<Algo> self_type;
-  
-  typedef typename base_type::StateId StateId;
-  typedef typename base_type::Symbol Symbol;
-  typedef typename base_type::Probability Probability;
-  typedef boost::mpl::bool_<true> is_explicit_duration_model;
-  enum { max_duration = Algo::max_duration };
-
-    HSMMMatrixModel() {}
-
-public:
-  size_t get_max_duration() const { return max_duration; }
+	//typedef typename Algo::model_type::state_id_type StateId;
+	typedef MatrixModel<Algo> base_type;
+	typedef HSMMMatrixModel<Algo> self_type;
+	
+	typedef typename base_type::StateId StateId;
+	typedef typename base_type::Symbol Symbol;
+	typedef typename base_type::Probability Probability;
+	typedef boost::mpl::bool_<true> is_explicit_duration_model;
 
 protected:
 	boost::multi_array<Probability, 2> _duration_params;
@@ -730,15 +650,13 @@ protected:
 		_duration_params.clear();
 		base_type::clear();
 	}
-
-public:
-  virtual ~HSMMMatrixModel() {}
+	
 	
 
 public:
 	void SetEta(const StateId& state, double eta)
 	{
-	  assert( base_type::isvalidstateid( state ) );
+		assert( isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		_duration_params[state][_eta] = eta;
 	}
@@ -746,7 +664,7 @@ public:
 public:
 	void SetMu(const StateId& state, double mu)
 	{
-	  assert( base_type::isvalidstateid( state ) );
+		assert( isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		_duration_params[state][_mu] = mu;
 	}
@@ -754,7 +672,7 @@ public:
 public:
 	double GetEta(const StateId& state) const
 	{
-	  assert( base_type::isvalidstateid( state ) );
+		assert( isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		return _duration_params[state][_eta];
 	}
@@ -762,7 +680,7 @@ public:
 public:
 	double GetMu(const StateId& state) const
 	{
-	  assert( base_type::isvalidstateid( state ) );
+		assert( isvalidstateid( state ) );
 		//assert( !IsReservedState(state) );
 		return _duration_params[state][_mu];
 	}
@@ -774,7 +692,7 @@ public:
 		using namespace boost::math;
 		assert(duration <= Algo::max_duration );
 
-		if( base_type::IsReservedState(state) ) return (duration==1) ? 0.0 : -std::numeric_limits<Probability>::max();
+		if( IsReservedState(state) ) return (duration==1) ? 0.0 : -std::numeric_limits<Probability>::max();
 
 		gamma_distribution<Probability> dist(_get_mu(state),
 											 1./_get_eta(state) );
@@ -800,23 +718,6 @@ public:
 			);
 */
 	}
-
-
-public:
-  size_t /*state_learning_mode_t*/ GetStateLearningMode(const StateId& state, size_t param_class) const
-	{
-	  assert( base_type::isvalidstateid( state ) ); assert( param_class < 3 /* TODO FIX THIS */ /*num_state_parameters<self_type>::value*/ );
-	  const typename base_type::state_learning_mode_t mode = base_type::_state_learning_mode[state][param_class];
-	  return (size_t)mode;
-	}
-public:
-  void SetStateLearningMode( const StateId& state, size_t param_class, size_t /*state_learning_mode_t*/ mode )
-  {
-    std::cout<< state<< ", "<< param_class<< ", "<< mode<< std::endl;
-    assert( base_type::isvalidstateid( state ) ); assert( param_class < 3 /*TODO FIX THIS*/ /*num_state_parameters<self_type>::value*/ );
-    // TODO - validate 'mode' parameterf
-    base_type::_state_learning_mode[state][param_class] = (typename base_type::state_learning_mode_t)mode;
-  }
 
 public:
 	void SetDefaultProbabilities()
@@ -862,19 +763,19 @@ public:
 		assert(balance>0.0 && balance<1.0);
 		
 		// Add the new state
-		base_type::AddState( new_state2, "split" );
+		AddState( new_state2, "split" );
 		resize();
 
 		// Update transitions
 		for(StateId i=0; i<base_type::num_states(); ++i)
 		{
-		  base_type::SetTransitionLogspace(new_state2,
+			SetTransitionLogspace(new_state2,
 								  i,
-					      base_type::a(orig_state, i) );
-		  base_type::SetTransitionLogspace(orig_state,
+								  a(orig_state, i) );
+			SetTransitionLogspace(orig_state,
 								  i,
 								  (i==new_state2) ? 0.0 : -std::numeric_limits<Probability>::max() );
-		  base_type::SetTransitionLogspace(i,
+			SetTransitionLogspace(i,
 								  new_state2,
 								  (i==orig_state) ? 0.0 : -std::numeric_limits<Probability>::max() );
 
@@ -884,9 +785,9 @@ public:
 		// Copy emissions to the new state
 		for( size_t s=0; s<base_type::num_symbols(); ++s)
 		{
-		  base_type::SetEmissionProbabilityLogspace( new_state2,
+			SetEmissionProbabilityLogspace( new_state2,
 											base_type::get_symbol(s),
-							base_type::e(orig_state, s) );
+											e(orig_state, s) );
 		}
 
 		// Update duration params
@@ -920,7 +821,6 @@ public:
 	
 	
 };
-
 
 template<class Algo>
 void debug_print( const MatrixModel<Algo>& obj, size_t mode=0 )
@@ -1041,46 +941,3 @@ void relax_emissions(typename Algo::model_type& model, double level, const boost
 #endif //NO_TESTS	
 
 }
-
-namespace v2
-{
-
-
-namespace model
-{
-
-/*
- * Define model traits for HMM models
- */
-template <typename Model>
-struct model_traits<
-    Model
-  , typename boost::enable_if<
-      boost::mpl::and_<
-	boost::is_base_of< HMMMatrixModel, Model>                         // model derives from HMM...
-      , boost::mpl::not_< boost::is_base_of< HSMMMatrixModelBase, Model> > // ...but not from HSMM
-      >
-    >::type
->
-{
-  typedef markov_chain hidden_process;
-};
-
-/*
- * Define model traits for HSMM models
- */
-template <typename Model>
-struct model_traits<
-    Model
-  , typename boost::enable_if<
-      typename boost::is_base_of< HSMMMatrixModelBase, Model>
-    >::type
->
-{
-  typedef semi_markov_chain hidden_process;
-};
-
-
-} // namespace model
-
-} // namespace v2

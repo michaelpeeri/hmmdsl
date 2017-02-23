@@ -1,20 +1,3 @@
-//-------------------------------------------------------------------------------------
-//  Copyright 2014 Michael Peeri
-//
-//  This file is part of hmmdsl.
-//  hmmdsl is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  hmmdsl is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
-//-------------------------------------------------------------------------------------
 #include "read_fasta.hpp"
 
 namespace fasta
@@ -37,13 +20,7 @@ const seq_t& get_seq(seq_cont_t::const_reference elem)
 
 size_t get_len(seq_cont_t::const_reference elem)
 {
-    return elem.get<2>().size();
-}
-
-
-size_t get_len(const seq_t& free_sequence)
-{
-    return free_sequence.length();
+	return elem.get<2>().size();
 }
 
 
@@ -121,11 +98,6 @@ void read_fasta(const std::string& path, seq_cont_t& seqs, Iterator begin, Itera
 	if( seqs.size() == 0)
 		seqs = seqs_orig;
 	
-}
-
-size_t num_sequences(const seq_cont_t& seqs)
-{
-  return seqs.size();
 }
 
 // Explicit instantiation

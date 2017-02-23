@@ -1,20 +1,3 @@
-//-------------------------------------------------------------------------------------
-//  Copyright 2014 Michael Peeri
-//
-//  This file is part of hmmdsl.
-//  hmmdsl is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  hmmdsl is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with hmmdsl.  If not, see <http://www.gnu.org/licenses/>.
-//-------------------------------------------------------------------------------------
 #pragma once
 #include <iostream>
 #include <fstream>
@@ -194,8 +177,6 @@ template<class Seq, class Acc, class Desc, class Cont=std::vector<boost::tuple<A
 struct SequenceContainer : public Cont
 {
 public:
-  typedef Cont base_type;
-public:
 	SequenceContainer() : _cummulative_seq_size(0)  {}
 	void on_seq_begin() {}
 	
@@ -209,7 +190,7 @@ public:
 	
 	void on_seq(const Acc& acc, const Desc& desc, const Seq& seq)
 	{
-	  base_type::push_back( boost::make_tuple(acc,desc,seq) );
+		push_back( boost::make_tuple(acc,desc,seq) );
 
 /*		
 		std::cout<< "***"<< std::endl;
@@ -242,7 +223,6 @@ const std::string& get_acc(seq_cont_t::const_reference elem);
 const std::string& get_desc(seq_cont_t::const_reference elem);
 const seq_t& get_seq(seq_cont_t::const_reference elem);
 size_t get_len(seq_cont_t::const_reference elem);
-size_t get_len(const seq_t& free_sequence);
 
 
 size_t count_fasta(const std::string& path);
@@ -250,8 +230,6 @@ void read_fasta(const std::string& path, seq_cont_t& seqs);
 
 template<class Iterator>
 void read_fasta(const std::string& path, seq_cont_t& seqs, Iterator begin, Iterator end);
-
-size_t num_sequences(const seq_cont_t& seqs);
 	
 } // namespace fasta
 
